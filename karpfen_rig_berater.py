@@ -12,152 +12,85 @@ st.title("🎣 Profi-Karpfen Rig & Vorfach Berater")
 st.caption("Optimiert für Fangquote & Sicherheit – mobil bedienbar")
 
 # =========================
-# Eingaben
+# 1️⃣ Gewässertyp & Umwelt
 # =========================
-st.header("📍 Gewässer & Bedingungen")
+st.header("🌊 Gewässer & Umwelt")
+
+gewaesser_typ = st.selectbox(
+    "Gewässertyp", ["Teich", "See", "Fluss", "Strom"],
+    help="Art des Gewässers beeinflusst Strömung und Köderwahl."
+)
+
+fliessgeschwindigkeit = 0
+if gewaesser_typ in ["Fluss", "Strom"]:
+    fliessgeschwindigkeit = st.slider(
+        "Fließgeschwindigkeit (m/s)", 0.0, 2.0, 0.5, 0.1,
+        help="Schnelle Strömung erfordert stabilere Rigs und Vorfächer."
+    )
+
+jahreszeit = st.selectbox(
+    "Jahreszeit", ["Frühling", "Sommer", "Herbst", "Winter"],
+    help="Karpfen fressen je nach Jahreszeit unterschiedlich aktiv."
+)
+
+wasser_truebung = st.slider(
+    "Wassertrübung (0=klar, 10=trüb)", 0, 10, 3,
+    help="Beeinflusst Köderfarbe und Sichtbarkeit."
+)
+
+wassertemperatur = st.slider(
+    "Wassertemperatur (°C)", 4, 30, 16,
+    help="Aktivität der Karpfen hängt stark von der Temperatur ab."
+)
+
+# =========================
+# 2️⃣ Boden & Pflanzen
+# =========================
+st.header("🏞️ Boden & Pflanzen")
 
 boden = st.selectbox(
-    "Bodenbeschaffenheit 🏞️",
-    ["hart", "weich", "schlammig"],
+    "Bodenbeschaffenheit", ["hart", "weich", "schlammig"],
     help="Bodenart beeinflusst, welches Rig am besten aufliegt."
 )
 
-kraut = st.checkbox("Kraut vorhanden 🌿", help="Kraut am Grund kann Köder verdecken oder verfangen.")
+kraut = st.checkbox(
+    "Kraut vorhanden", help="Kraut kann den Köder verdecken oder verfangen."
+)
 
 st.subheader("Hindernisse ⛔")
-hindernisse_muscheln = st.checkbox("Muscheln / Steine", help="Kann das Vorfach beschädigen")
-hindernisse_aeste = st.checkbox("Äste / Unterholz", help="Hindernisse für den Köder")
-hindernisse_grund = st.checkbox("Andere Hindernisse", help="Sonstige Hindernisse am Gewässergrund")
+hindernisse_muscheln = st.checkbox("Muscheln / Steine")
+hindernisse_aeste = st.checkbox("Äste / Unterholz")
+hindernisse_grund = st.checkbox("Andere Hindernisse")
 
 hindernisse = []
 if hindernisse_muscheln: hindernisse.append("muscheln/steine")
 if hindernisse_aeste: hindernisse.append("äste/unterholz")
 if hindernisse_grund: hindernisse.append("andere")
 
-angeldruck = st.selectbox(
-    "Angeldruck 🎣",
-    ["niedrig", "mittel", "hoch"],
-    help="Je mehr Angelruten in der Nähe, desto vorsichtiger sind die Fische."
-)
+# =========================
+# 3️⃣ Fisch & Angelbedingungen
+# =========================
+st.header("🐟 Fisch & Angelbedingungen")
+
+angeldruck = st.selectbox("Angeldruck", ["niedrig", "mittel", "hoch"])
 vorsichtige_fische = angeldruck == "hoch"
 
-wasser_truebung = st.slider(
-    "Wassertrübung (0=klar, 10=trüb) 💧",
-    0, 10, 3,
-    help="Beeinflusst Köderfarbe und Sichtbarkeit."
-)
-
-wassertemperatur = st.slider(
-    "Wassertemperatur (°C) 🌡️",
-    4, 30, 16,
-    help="Wassertemperatur beeinflusst Aktivität und Fressverhalten der Karpfen."
-)
-
-gewaesser_typ = st.selectbox(
-    "Gewässertyp 🌊",
-    ["Teich", "See", "Fluss", "Strom"],
-    help="Die Art des Gewässers beeinflusst Strömung und Köderwahl."
-)
-if gewaesser_typ in ["Fluss", "Strom"]:
-    fliessgeschwindigkeit = st.slider(
-        "Fließgeschwindigkeit (m/s) 🌊",
-        0.0, 2.0, 0.5, 0.1,
-        help="Schnelle Strömung erfordert stabilere Rigs und Vorfächer."
-    )
-else:
-    fliessgeschwindigkeit = 0
-
-wurfweite = st.slider("Wurfweite (Meter) 🎯", 10, 120, 40)
-max_karpfen = st.slider("Erwartetes Karpfengewicht (kg) 🐟", 5, 35, 15)
 weissfisch = st.slider("Weißfisch-Anteil (%)", 0, 10, 4)
-
-jahreszeit = st.selectbox(
-    "Jahreszeit 🍂",
-    ["Frühling", "Sommer", "Herbst", "Winter"],
-    help="Karpfen fressen je nach Jahreszeit unterschiedlich aktiv."
-)
+max_karpfen = st.slider("Erwartetes Karpfengewicht (kg)", 5, 35, 15)
 
 modus = st.radio(
     "Ziel",
     ["🎯 Maximale Fangquote", "🛡 Maximale Sicherheit"],
-    help="Maximale Fangquote = aggressiver, sichtbarer Köder. Maximale Sicherheit = vorsichtig & unauffällig."
+    help="Maximale Fangquote = sichtbarer Köder, maximale Sicherheit = vorsichtig & unauffällig."
 )
 
+wurfweite = st.slider("Wurfweite (Meter)", 10, 120, 40)
+
 # =========================
-# Logik
+# 4️⃣ Rig-Logik & Empfehlungen
 # =========================
-def rig_empfehlung(koeder_typ):
-    """
-    Wählt das passende Rig abhängig von Hindernissen, Angelmodus, Rig-Köder-Kompatibilität
-    """
-    # Strömung
-    if gewaesser_typ in ["Fluss", "Strom"] and fliessgeschwindigkeit > 1.0:
-        rig_name = "Heavy Hair Rig"
-        rig_aufbau = (
-            "- Haarlänge: 1–2 cm\n"
-            "- Schrumpfschlauch: ja\n"
-            "- Wirbel: stabil, Anti-Twist\n"
-            "- Haken: Größe 4 Wide Gape"
-        )
-        return rig_name, "Für stark fließendes Wasser optimiert", rig_aufbau
-
-    # Sicherheitsmodus + Hindernisse
-    if hindernisse and modus.startswith("🛡"):
-        rig_name = "Hair Rig"
-        rig_aufbau = (
-            "- Haarlänge: 1–2 cm\n"
-            "- Schrumpfschlauch: ja\n"
-            "- Wirbel: kleiner Wirbel für Abrieb\n"
-            "- Haken: Größe 4 Wide Gape"
-        )
-        return rig_name, "Maximale Sicherheit bei Hindernissen", rig_aufbau
-
-    # Kraut / weicher Boden
-    if kraut or boden in ["weich", "schlammig"]:
-        rig_name = "Ronnie Rig"
-        rig_aufbau = (
-            "- Haarlänge: 1,5–2 cm\n"
-            "- Schrumpfschlauch: optional\n"
-            "- Wirbel: Standard\n"
-            "- Haken: Größe 6 Wide Gape"
-        )
-        return rig_name, "Köder bleibt über Kraut & weichem Boden", rig_aufbau
-
-    # Vorsichtige Fische
-    if vorsichtige_fische:
-        rig_name = "D-Rig"
-        rig_aufbau = (
-            "- Haarlänge: 1 cm\n"
-            "- Schrumpfschlauch: optional\n"
-            "- Wirbel: Standard\n"
-            "- Haken: Größe 6 Curve Shank"
-        )
-        return rig_name, "Sehr unauffällig für stark beangelte Fische", rig_aufbau
-
-    # Standard, Pop-Up Kontrolle: Pop-Up nur auf Ronnie Rig oder Blowback Rig
-    if koeder_typ == "Pop-Up":
-        rig_name = "Ronnie Rig"
-        rig_aufbau = (
-            "- Haarlänge: 1,5–2 cm\n"
-            "- Schrumpfschlauch: optional\n"
-            "- Wirbel: Standard\n"
-            "- Haken: Größe 6 Wide Gape"
-        )
-        return rig_name, "Pop-Up Köder optimal auf Ronnie Rig", rig_aufbau
-
-    rig_name = "Blowback Rig"
-    rig_aufbau = (
-        "- Haarlänge: 1–1,5 cm\n"
-        "- Schrumpfschlauch: optional\n"
-        "- Wirbel: Standard\n"
-        "- Haken: Größe 6 Wide Gape"
-    )
-    return rig_name, "Allround-Rig mit hoher Hakeffizienz", rig_aufbau
 
 def koeder_empfehlung():
-    """
-    Wählt den passenden Köder und Typ
-    """
     if wassertemperatur < 10 or jahreszeit == "Winter":
         return "Pop-Up", 14, "Kaltwasser / Winter – leicht & auffällig"
     if weissfisch >= 6:
@@ -168,6 +101,68 @@ def koeder_empfehlung():
         return "Leuchtender Pop-Up", 16, "Trübes Wasser – auffälliger Köder"
     return "Boilie", 20, "Bewährter Standardköder"
 
+def rig_empfehlung(koeder_typ):
+    """
+    Alle Rigs prüfen und nur notwendige Komponenten ausgeben
+    """
+    rigs = []
+
+    # Hair Rig
+    if not (koeder_typ in ["Pop-Up", "Leuchtender Pop-Up"]) and modus.startswith("🛡") and not hindernisse:
+        rigs.append({
+            "name": "Hair Rig",
+            "grund": "Allround, sicher für klare Wasserbedingungen",
+            "aufbau": [
+                "Haarlänge: 1–2 cm",
+                "Schrumpfschlauch: optional (bei weichem Boden)",
+                "Wirbel: nur bei Strömung >0.8 m/s",
+                "Haken: Größe 6 Wide Gape"
+            ]
+        })
+
+    # Ronnie Rig
+    if kraut or boden in ["weich", "schlammig"] or koeder_typ in ["Pop-Up", "Leuchtender Pop-Up"]:
+        rigs.append({
+            "name": "Ronnie Rig",
+            "grund": "Optimal für Kraut und Pop-Up",
+            "aufbau": [
+                "Haarlänge: 1,5–2 cm",
+                "Schrumpfschlauch: nur bei Kraut oder weichem Boden",
+                "Wirbel: klein für Abriebschutz",
+                "Haken: Größe 6 Wide Gape",
+                "Zusatzblei: 20 g bei Pop-Up"
+            ],
+            "video": "https://www.youtube.com/watch?v=EXAMPLE_RONNIE"
+        })
+
+    # D-Rig
+    if vorsichtige_fische:
+        rigs.append({
+            "name": "D-Rig",
+            "grund": "Unauffällig für vorsichtige Fische",
+            "aufbau": [
+                "Haarlänge: 1 cm",
+                "Schrumpfschlauch: optional",
+                "Wirbel: nicht nötig",
+                "Haken: Größe 6 Curve Shank"
+            ]
+        })
+
+    # Blowback Rig
+    if not rigs:
+        rigs.append({
+            "name": "Blowback Rig",
+            "grund": "Allround-Rig mit hoher Hakeffizienz",
+            "aufbau": [
+                "Haarlänge: 1–1,5 cm",
+                "Schrumpfschlauch: optional",
+                "Wirbel: nicht nötig",
+                "Haken: Größe 6 Wide Gape"
+            ]
+        })
+
+    return rigs
+
 def vorfach_empfehlung(rig):
     if fliessgeschwindigkeit > 0.8:
         return "Stiff + heavier", 25, 25, "Strömungsbeständiges Vorfach"
@@ -175,8 +170,6 @@ def vorfach_empfehlung(rig):
         return "Kombi-Vorfach (coated braid + stiff)", 20, 25, "Abriebschutz & Kontrolle"
     if vorsichtige_fische and wasser_truebung < 4:
         return "Fluorocarbon", 30, 15, "Nahezu unsichtbar im klaren Wasser"
-    if rig in ["Ronnie Rig", "D-Rig"]:
-        return "Stiff", 25, 20, "Stabile Köderführung"
     return "Mono", 25, 15, "Unkompliziert & zuverlässig"
 
 def haken_empfehlung():
@@ -187,44 +180,43 @@ def haken_empfehlung():
     return "Größe 6 Wide Gape", "Allround-Haken"
 
 def blei_empfehlung(koeder):
-    """
-    Berechnet Blei, abhängig von Köder und Bedingungen
-    """
     gewicht = 80
     form = "Inline"
-
     if wurfweite > 60:
         gewicht += 20
         form = "Distance"
-
     if "muscheln/steine" in hindernisse:
         gewicht += 10
-
     if fliessgeschwindigkeit > 0.8:
         gewicht += 20
-
-    # Pop-Up benötigt immer Blei
     if koeder in ["Pop-Up", "Leuchtender Pop-Up"]:
         gewicht = max(gewicht, 25)
-
     return gewicht, form
 
 # =========================
-# Ausgabe
+# 5️⃣ Ausgabe
 # =========================
 if st.button("🎣 Empfehlung anzeigen"):
     koeder, groesse, koeder_grund = koeder_empfehlung()
-    rig, rig_grund, rig_aufbau = rig_empfehlung(koeder)
-    vorfach, laenge, staerke, vorfach_grund = vorfach_empfehlung(rig)
+    rigs = rig_empfehlung(koeder)
+    vorfach, laenge, staerke, vorfach_grund = vorfach_empfehlung(rigs[0]['name'])
     haken, haken_grund = haken_empfehlung()
     blei, blei_form = blei_empfehlung(koeder)
 
     st.success("✅ Deine persönliche Empfehlung")
 
-    st.subheader("🪝 Rig")
-    st.write(f"**{rig}**")
-    st.caption(rig_grund)
-    st.text(rig_aufbau)
+    st.subheader("🍡 Köder")
+    st.write(f"{koeder} – {groesse} mm")
+    st.caption(koeder_grund)
+
+    st.subheader("🪝 Rigs")
+    for rig in rigs:
+        st.write(f"**{rig['name']}**")
+        st.caption(rig['grund'])
+        for zeile in rig['aufbau']:
+            st.text(zeile)
+        if 'video' in rig:
+            st.markdown(f"[🎥 Video Tutorial]({rig['video']})")
 
     st.subheader("🧵 Vorfach")
     st.write(f"{vorfach}, {laenge} cm, {staerke} lb")
@@ -238,9 +230,4 @@ if st.button("🎣 Empfehlung anzeigen"):
     st.write(f"{blei} g – {blei_form}")
     st.caption("Wird benötigt, um Haken & Köder korrekt zu stabilisieren")
 
-    st.subheader("🍡 Köder")
-    st.write(f"{koeder} – {groesse} mm")
-    st.caption(koeder_grund)
-
     st.info("🎯 Tipp: Passe Rig & Vorfach regelmäßig an Gewässer, Jahreszeit, Strömung und Fischverhalten an.")
-
