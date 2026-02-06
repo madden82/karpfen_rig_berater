@@ -162,8 +162,7 @@ RIG_LIBRARY = [
             "3. Wafter fixieren (Köder balancieren)"
         ]
     },
-    RIG_LIBRARY = [
-
+ 
     # — Allround / Bodenköder —
     {
         "name": "Hair Rig",
