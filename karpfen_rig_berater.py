@@ -381,7 +381,7 @@ RIG_LIBRARY = [
     }
 ]
 
-]
+
 
 # =========================
 # Gewichtetes Punktesystem
