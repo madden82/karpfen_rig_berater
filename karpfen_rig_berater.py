@@ -12,7 +12,7 @@ st.title("🎣 Profi-Karpfen Rig & Vorfach Berater")
 st.caption("Optimiert für Fangquote & Sicherheit – mobil bedienbar")
 
 # =========================
-# Eingaben mit Tooltips und Erklärung
+# Eingaben
 # =========================
 st.header("📍 Gewässer & Bedingungen")
 
@@ -84,9 +84,13 @@ modus = st.radio(
 )
 
 # =========================
-# Logik (wie zuvor, nur unverändert)
+# Logik
 # =========================
-def rig_empfehlung():
+def rig_empfehlung(koeder_typ):
+    """
+    Wählt das passende Rig abhängig von Hindernissen, Angelmodus, Rig-Köder-Kompatibilität
+    """
+    # Strömung
     if gewaesser_typ in ["Fluss", "Strom"] and fliessgeschwindigkeit > 1.0:
         rig_name = "Heavy Hair Rig"
         rig_aufbau = (
@@ -97,6 +101,7 @@ def rig_empfehlung():
         )
         return rig_name, "Für stark fließendes Wasser optimiert", rig_aufbau
 
+    # Sicherheitsmodus + Hindernisse
     if hindernisse and modus.startswith("🛡"):
         rig_name = "Hair Rig"
         rig_aufbau = (
@@ -107,6 +112,7 @@ def rig_empfehlung():
         )
         return rig_name, "Maximale Sicherheit bei Hindernissen", rig_aufbau
 
+    # Kraut / weicher Boden
     if kraut or boden in ["weich", "schlammig"]:
         rig_name = "Ronnie Rig"
         rig_aufbau = (
@@ -117,6 +123,7 @@ def rig_empfehlung():
         )
         return rig_name, "Köder bleibt über Kraut & weichem Boden", rig_aufbau
 
+    # Vorsichtige Fische
     if vorsichtige_fische:
         rig_name = "D-Rig"
         rig_aufbau = (
@@ -127,6 +134,17 @@ def rig_empfehlung():
         )
         return rig_name, "Sehr unauffällig für stark beangelte Fische", rig_aufbau
 
+    # Standard, Pop-Up Kontrolle: Pop-Up nur auf Ronnie Rig oder Blowback Rig
+    if koeder_typ == "Pop-Up":
+        rig_name = "Ronnie Rig"
+        rig_aufbau = (
+            "- Haarlänge: 1,5–2 cm\n"
+            "- Schrumpfschlauch: optional\n"
+            "- Wirbel: Standard\n"
+            "- Haken: Größe 6 Wide Gape"
+        )
+        return rig_name, "Pop-Up Köder optimal auf Ronnie Rig", rig_aufbau
+
     rig_name = "Blowback Rig"
     rig_aufbau = (
         "- Haarlänge: 1–1,5 cm\n"
@@ -135,6 +153,20 @@ def rig_empfehlung():
         "- Haken: Größe 6 Wide Gape"
     )
     return rig_name, "Allround-Rig mit hoher Hakeffizienz", rig_aufbau
+
+def koeder_empfehlung():
+    """
+    Wählt den passenden Köder und Typ
+    """
+    if wassertemperatur < 10 or jahreszeit == "Winter":
+        return "Pop-Up", 14, "Kaltwasser / Winter – leicht & auffällig"
+    if weissfisch >= 6:
+        return "Harter Boilie", 22, "Schützt vor Weißfisch"
+    if vorsichtige_fische:
+        return "Wafter", 18, "Unauffällig & effektiv"
+    if wasser_truebung > 6:
+        return "Leuchtender Pop-Up", 16, "Trübes Wasser – auffälliger Köder"
+    return "Boilie", 20, "Bewährter Standardköder"
 
 def vorfach_empfehlung(rig):
     if fliessgeschwindigkeit > 0.8:
@@ -154,38 +186,38 @@ def haken_empfehlung():
         return "Größe 6 Curve Shank", "Verbessert Hookups bei vorsichtigen Fischen"
     return "Größe 6 Wide Gape", "Allround-Haken"
 
-def blei_empfehlung():
+def blei_empfehlung(koeder):
+    """
+    Berechnet Blei, abhängig von Köder und Bedingungen
+    """
     gewicht = 80
     form = "Inline"
+
     if wurfweite > 60:
         gewicht += 20
         form = "Distance"
+
     if "muscheln/steine" in hindernisse:
         gewicht += 10
+
     if fliessgeschwindigkeit > 0.8:
         gewicht += 20
+
+    # Pop-Up benötigt immer Blei
+    if koeder in ["Pop-Up", "Leuchtender Pop-Up"]:
+        gewicht = max(gewicht, 25)
+
     return gewicht, form
 
-def koeder_empfehlung():
-    if wassertemperatur < 10 or jahreszeit == "Winter":
-        return "Pop-Up", 14, "Kaltwasser / Winter – leicht & auffällig"
-    if weissfisch >= 6:
-        return "Harter Boilie", 22, "Schützt vor Weißfisch"
-    if vorsichtige_fische:
-        return "Wafter", 18, "Unauffällig & effektiv"
-    if wasser_truebung > 6:
-        return "Leuchtender Pop-Up", 16, "Trübes Wasser – auffälliger Köder"
-    return "Boilie", 20, "Bewährter Standardköder"
-
 # =========================
-# Ausgabe mit Profi-Layout
+# Ausgabe
 # =========================
 if st.button("🎣 Empfehlung anzeigen"):
-    rig, rig_grund, rig_aufbau = rig_empfehlung()
+    koeder, groesse, koeder_grund = koeder_empfehlung()
+    rig, rig_grund, rig_aufbau = rig_empfehlung(koeder)
     vorfach, laenge, staerke, vorfach_grund = vorfach_empfehlung(rig)
     haken, haken_grund = haken_empfehlung()
-    blei, blei_form = blei_empfehlung()
-    koeder, groesse, koeder_grund = koeder_empfehlung()
+    blei, blei_form = blei_empfehlung(koeder)
 
     st.success("✅ Deine persönliche Empfehlung")
 
@@ -204,9 +236,11 @@ if st.button("🎣 Empfehlung anzeigen"):
 
     st.subheader("⚖️ Blei")
     st.write(f"{blei} g – {blei_form}")
+    st.caption("Wird benötigt, um Haken & Köder korrekt zu stabilisieren")
 
     st.subheader("🍡 Köder")
     st.write(f"{koeder} – {groesse} mm")
     st.caption(koeder_grund)
 
-    st.info("🎯 Tipp: Passe Rig & Vorfach regelmäßig an Gewässer, Jahreszeit und Fischverhalten an.")
+    st.info("🎯 Tipp: Passe Rig & Vorfach regelmäßig an Gewässer, Jahreszeit, Strömung und Fischverhalten an.")
+
