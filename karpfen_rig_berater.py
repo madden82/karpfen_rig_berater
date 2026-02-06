@@ -131,7 +131,105 @@ def rig_empfehlung(koeder):
 
     # Weitere Profi-Rigs
     rigs += [
-        {"name": "Chod Rig", "grund": "Ideal für weiche Böden oder Kraut", "aufbau":["Haar: 1,5–2 cm", "Schlauch: optional", "Wirbel: nur bei starker Strömung"], "video":"https://www.youtube.com/watch?v=HLWYQkm1GSo"},
-        {"name": "Hinged Stiff Rig", "grund": "Köder stabil über Grund", "aufbau":["Haar: 1–1,5 cm", "Schlauch: optional", "Wirbel: optional"], "video":"https://www.youtube.com/watch?v=HLWYQkm1GSo"},
-        {"name": "Helicopter Rig", "grund": "Geringes Verheddern bei Hindernissen", "aufbau":["Haar: 1,5 cm", "Wirbel: erforderlich", "Schrumpfschlauch: optional"], "video":"https://www.youtube.com/watch?v=HqNrPDiOKYU"},
-        {"name": "Bolt Rig", "grund": "Stabil bei starken Strömungen", "aufbau":["Haar: 1–2 cm", "Wirbel: stabil", "Schlauch: optional"], "video":"https://www.youtube.co
+        {
+            "name": "Chod Rig",
+            "grund": "Ideal für weiche Böden oder Kraut",
+            "aufbau": ["Haar: 1,5–2 cm", "Schlauch: optional", "Wirbel: nur bei starker Strömung"],
+            "video": "https://www.youtube.com/watch?v=HLWYQkm1GSo"
+        },
+        {
+            "name": "Hinged Stiff Rig",
+            "grund": "Köder stabil über Grund",
+            "aufbau": ["Haar: 1–1,5 cm", "Schlauch: optional", "Wirbel: optional"],
+            "video": "https://www.youtube.com/watch?v=HLWYQkm1GSo"
+        },
+        {
+            "name": "Helicopter Rig",
+            "grund": "Geringes Verheddern bei Hindernissen",
+            "aufbau": ["Haar: 1,5 cm", "Wirbel: erforderlich", "Schrumpfschlauch: optional"],
+            "video": "https://www.youtube.com/watch?v=HqNrPDiOKYU"
+        },
+        {
+            "name": "Bolt Rig",
+            "grund": "Stabil bei starken Strömungen",
+            "aufbau": ["Haar: 1–2 cm", "Wirbel: stabil", "Schlauch: optional"],
+            "video": "https://www.youtube.com/watch?v=HLWYQkm1GSo"
+        },
+        {
+            "name": "Method Feeder Rig",
+            "grund": "Perfekt für Futterplatzfischen",
+            "aufbau": ["Haar: 1–2 cm", "Schlauch: optional"],
+            "video": "https://www.youtube.com/watch?v=kQfhCtbYcpU"
+        }
+    ]
+
+    return rigs
+
+def vorfach_empfehlung(rig):
+    if fliessgeschwindigkeit > 0.8:
+        return "Stiff + heavier", 25, 25, "Strömungsbeständiges Vorfach"
+    if hindernisse:
+        return "Kombi-Vorfach (coated braid + stiff)", 20, 25, "Abriebschutz & Kontrolle"
+    if vorsichtige_fische and wasser_truebung < 4:
+        return "Fluorocarbon", 30, 15, "Nahezu unsichtbar im klaren Wasser"
+    return "Mono", 25, 15, "Unkompliziert & zuverlässig"
+
+def haken_empfehlung(koeder):
+    if max_karpfen >= 20:
+        return "Größe 4 Wide Gape (starker Draht)", "Für große & kampfstarke Karpfen"
+    if koeder in ["Pop-Up", "Leuchtender Pop-Up"]:
+        return "Größe 6 Wide Gape", "Optimale Größe für Pop-Up Montage"
+    return "Größe 6 Curve Shank", "Allround-Haken"
+
+def blei_empfehlung(koeder):
+    gewicht = 80
+    form = "Inline"
+    if wurfweite > 60:
+        gewicht += 20
+        form = "Distance"
+    if "muscheln/steine" in hindernisse:
+        gewicht += 10
+    if fliessgeschwindigkeit > 0.8:
+        gewicht += 20
+    if koeder in ["Pop-Up", "Leuchtender Pop-Up"]:
+        gewicht = max(gewicht, 25)
+    return gewicht, form
+
+# =========================
+# 5️⃣ Ausgabe
+# =========================
+if st.button("🎣 Empfehlung anzeigen"):
+    koeder, groesse, koeder_grund = koeder_empfehlung()
+    rigs = rig_empfehlung(koeder)
+    vorfach, laenge, staerke, vorfach_grund = vorfach_empfehlung(rigs[0]['name'])
+    haken, haken_grund = haken_empfehlung(koeder)
+    blei, blei_form = blei_empfehlung(koeder)
+
+    st.success("✅ Deine persönliche Empfehlung")
+
+    st.subheader("🍡 Köder")
+    st.write(f"{koeder} – {groesse} mm")
+    st.caption(koeder_grund)
+
+    st.subheader("🪝 Rigs")
+    for rig in rigs:
+        st.write(f"**{rig['name']}**")
+        st.caption(rig['grund'])
+        for zeile in rig['aufbau']:
+            st.text(zeile)
+        if 'video' in rig:
+            st.markdown(f"[🎥 Video Tutorial]({rig['video']})")
+
+    st.subheader("🧵 Vorfach")
+    st.write(f"{vorfach}, {laenge} cm, {staerke} lb")
+    st.caption(vorfach_grund)
+
+    st.subheader("🎣 Haken")
+    st.write(haken)
+    st.caption(haken_grund)
+
+    st.subheader("⚖️ Blei")
+    st.write(f"{blei} g – {blei_form}")
+    st.caption("Wird benötigt, um Haken & Köder korrekt zu stabilisieren")
+
+    st.info("🎯 Tipp: Passe Rig & Vorfach regelmäßig an Gewässer, Jahreszeit, Strömung und Fischverhalten an.")
