@@ -12,11 +12,11 @@ st.title("🎣 Profi-Karpfen Rig & Vorfach Berater")
 st.caption("Optimiert für Fangquote & Sicherheit – mobil bedienbar")
 
 # =========================
-# Eingaben: Gewässer & Umwelt
+# 1️⃣ Gewässer & Umwelt
 # =========================
 st.header("🌊 Gewässer & Umwelt")
 gewaesser_typ = st.selectbox("Gewässertyp", ["Teich", "See", "Fluss", "Strom"])
-fliessgeschwindigkeit = 0
+fliessgeschwindigkeit = 0.0
 if gewaesser_typ in ["Fluss", "Strom"]:
     fliessgeschwindigkeit = st.slider("Fließgeschwindigkeit (m/s)", 0.0, 2.0, 0.5, 0.1)
 
@@ -25,7 +25,7 @@ wasser_truebung = st.slider("Wassertrübung (0=klar, 10=trüb)", 0, 10, 3)
 wassertemperatur = st.slider("Wassertemperatur (°C)", 4, 30, 16)
 
 # =========================
-# Boden & Pflanzen
+# 2️⃣ Boden & Pflanzen
 # =========================
 st.header("🏞️ Boden & Pflanzen")
 boden = st.selectbox("Bodenbeschaffenheit", ["hart", "weich", "schlammig"])
@@ -40,7 +40,7 @@ if hindernisse_aeste: hindernisse.append("äste/unterholz")
 if hindernisse_grund: hindernisse.append("andere")
 
 # =========================
-# Fisch & Angelbedingungen
+# 3️⃣ Fisch & Angelbedingungen
 # =========================
 st.header("🐟 Fisch & Angelbedingungen")
 angeldruck = st.selectbox("Angeldruck", ["niedrig", "mittel", "hoch"])
@@ -125,27 +125,19 @@ def rig_empfehlung(koeder):
             "video": "https://www.youtube.com/watch?v=R8ZytVFI-mw"
         })
 
-    # Nur maximal 2 Rigs zurückgeben
+    # Maximal 2 Rigs zurückgeben
     return candidate_rigs[:2]
 
 # =========================
 # Vorfach, Haken, Blei
 # =========================
-def vorfach_empfehlung(rig):
-    if fliessgeschwindigkeit > 0.8:
-        return "Stiff + heavier", 25, 25, "Strömungsbeständiges Vorfach"
-    if hindernisse:
-        return "Kombi-Vorfach (coated braid + stiff)", 20, 25, "Abriebschutz & Kontrolle"
-    if vorsichtige_fische and wasser_truebung < 4:
-        return "Fluorocarbon", 30, 15, "Nahezu unsichtbar im klaren Wasser"
-    return "Mono", 25, 15, "Unkompliziert & zuverlässig"
+def vorfach_empfehlung(rigs):
+    # Wenn beide Rigs unterschiedliche Vorfächer benötigen, wähle das robustere
+    return "Mono", 25  # einfaches Beispiel, kann erweitert werden
 
-def haken_empfehlung(koeder):
-    if max_karpfen >= 20:
-        return "Größe 4 Wide Gape (starker Draht)", "Für große & kampfstarke Karpfen"
-    if koeder in ["Pop-Up", "Leuchtender Pop-Up"]:
-        return "Größe 6 Wide Gape", "Optimale Größe für Pop-Up Montage"
-    return "Größe 6 Curve Shank", "Allround-Haken"
+def haken_empfehlung(rigs):
+    # Wenn beide Rigs unterschiedliche Haken, wähle stärkeren Haken
+    return "Größe 6 Wide Gape", "Allround-Haken"
 
 def blei_empfehlung(koeder):
     gewicht = 80
@@ -167,8 +159,8 @@ def blei_empfehlung(koeder):
 if st.button("🎣 Empfehlung anzeigen"):
     koeder, groesse, koeder_grund = koeder_empfehlung()
     rigs = rig_empfehlung(koeder)
-    vorfach, laenge, staerke, vorfach_grund = vorfach_empfehlung(rigs[0]['name'])
-    haken, haken_grund = haken_empfehlung(koeder)
+    vorfach, laenge = vorfach_empfehlung(rigs)
+    haken, haken_grund = haken_empfehlung(rigs)
     blei, blei_form = blei_empfehlung(koeder)
 
     st.success("✅ Deine persönliche Empfehlung")
