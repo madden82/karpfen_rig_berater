@@ -1,160 +1,163 @@
 import streamlit as st
 
-# =========================
-# Setup & Design
-# =========================
-st.set_page_config(page_title="Carp Rig Master Pro", layout="wide", page_icon="🎣")
+# ==========================================
+# PROFESSOR CARP - TACTICAL SETUP ENGINE
+# ==========================================
 
-st.title("🎣 Carp Rig Master Pro")
-st.markdown("---")
+st.set_page_config(page_title="Carp Tactical Engine v2.0", layout="wide")
 
-# =========================
-# Datenbank: Die 12 wichtigsten Rig-Architekturen
-# =========================
-# types: 1=Boden, 2=Wafter, 3=PopUp | speed: 1=langsam/träge, 2=allround, 3=aggressiv
-RIGS = [
-    {"name": "Ronnie Rig", "types": [3], "cast": 140, "weed": True, "stiff": True, "desc": "Das ultimative Pop-Up Rig für aggressive Hakeigenschaften."},
-    {"name": "Chod Rig", "types": [3], "cast": 120, "weed": True, "stiff": True, "desc": "Präsentiert den Köder sicher über Kraut oder tiefem Schlamm."},
-    {"name": "Hinged Stiff Rig", "types": [3], "cast": 140, "weed": True, "stiff": True, "desc": "Großfisch-Rig für Pop-Ups, sehr schwer auszuspucken."},
-    {"name": "Blowback Rig", "types": [1, 2], "cast": 160, "weed": False, "stiff": False, "desc": "Klassische Ring-Präsentation für maximale Köderbeweglichkeit."},
-    {"name": "German Rig", "types": [1, 2], "cast": 130, "weed": False, "stiff": True, "desc": "Sehr sauber am Boden liegend, perfekt für Wafter."},
-    {"name": "KD Rig", "types": [1, 2], "cast": 150, "weed": False, "stiff": False, "desc": "Phänomenaler Kipp-Effekt des Hakens durch den austretenden Haarpunkt."},
-    {"name": "Slip D Rig", "types": [2, 3], "cast": 140, "weed": True, "stiff": False, "desc": "Sehr feine Präsentation, ideal für scheue Fische am Rand des Krauts."},
-    {"name": "Multi Rig", "types": [3], "cast": 150, "weed": True, "stiff": True, "desc": "Ermöglicht extrem schnellen Hakenwechsel ohne neues Binden."},
-    {"name": "D-Rig (Fluoro)", "types": [1, 2], "cast": 150, "weed": False, "stiff": True, "desc": "Steife Präsentation, fast unsichtbar, ideal für klaren Kies."},
-    {"name": "Combi Rig", "types": [1, 2], "cast": 140, "weed": True, "stiff": False, "desc": "Vereint Steifheit (Anti-Tangle) mit extremer Beweglichkeit am Haken."},
-    {"name": "Zig Rig", "types": [3], "cast": 150, "weed": False, "stiff": False, "desc": "Spezial-Rig für Fische im Mittelwasser oder an der Oberfläche."},
-    {"name": "Simple Hair Rig", "types": [1], "cast": 180, "weed": False, "stiff": False, "desc": "Der bewährte Standard für weite Würfe und Bodenköder."}
-]
+# Datenbank mit technischen Spezifikationen (Auszug der Top-Architekturen)
+RIG_TECH_DB = {
+    "Ronnie Rig": {
+        "base_material": "Stiff Fluorocarbon (0.45mm) oder Boom-Material",
+        "hook_type": "Curved Shank (Gr. 4)",
+        "mechanics": "360-Grad Rotation für maximale Hakeffizienz bei Pop-Ups",
+        "optimal_height": "2-4cm über Grund",
+        "suitability": {"low_temp": 1.0, "weed": 1.0, "current": 0.3}
+    },
+    "Hinged Stiff Rig": {
+        "base_material": "Mouthtrap (25lb) / Chod Filament",
+        "hook_type": "Chod Hook (Out-turned Eye)",
+        "mechanics": "Zweiteiliges System für maximale Steifigkeit und Reset-Fähigkeit",
+        "optimal_height": "5-8cm",
+        "suitability": {"low_temp": 0.8, "weed": 0.9, "current": 0.2}
+    },
+    "Blowback Rig": {
+        "base_material": "Coated Braid (20-30lb)",
+        "hook_type": "Wide Gape oder Long Shank",
+        "mechanics": "Verschiebbarer Ring am Schenkel verhindert das Ausspucken",
+        "optimal_height": "Bündig am Grund",
+        "suitability": {"low_temp": 0.6, "weed": 0.2, "current": 0.8}
+    }
+    # ... weitere Rigs folgen der Logik unten
+}
 
-# =========================
-# Eingabemasken (Säulen-Layout)
-# =========================
-with st.sidebar:
-    st.header("📋 Szenario-Parameter")
-    distanz = st.slider("Entfernung (m)", 0, 200, 70)
-    methode = st.selectbox("Ausbringung", ["Wurf", "Futterboot", "Ablegen (Boot)"])
+# ==========================================
+# 1. USER INTERFACE: DER SPOT-SCAN
+# ==========================================
+st.title("🎖️ Carp Tactical Intelligence")
+st.write("Präzisions-Analyse basierend auf biologischen und physikalischen Daten.")
+
+with st.expander("🌍 UMGEBUNG & HYDROLOGIE", expanded=True):
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        jahreszeit = st.selectbox("Saison", ["Frühjahr (steigend)", "Sommer (Peak)", "Herbst (Fressphase)", "Winter (Lethargie)"])
+        temp = st.slider("Wassertemperatur (°C)", 2, 30, 12)
+    with c2:
+        grund = st.selectbox("Bodenstruktur", ["Fels/Stein", "Kies/Sand", "Lehm/Ton", "Schlamm (fest)", "Modder (faulig)", "Kraut (leicht)", "Kraut (Dschungel)"])
+        truebung = st.select_slider("Sichtweite", options=["0-20cm (Null)", "20-100cm (Trüb)", "1-3m (Klar)", ">3m (Gin-Clear)"])
+    with c3:
+        stromung = st.select_slider("Strömungsdruck", options=["Keiner", "Leicht (Kanal)", "Mittel (Fluss)", "Stark (Strom)"])
+        hindernisse = st.multiselect("Gefahrenquellen", ["Muschelbänke", "Totholz", "Scharfe Kanten", "Krautwände"])
+    with c4:
+        tiefe = st.number_input("Tiefe (m)", 0.5, 25.0, 4.0)
+        distanz = st.number_input("Distanz (m)", 5, 200, 80)
+
+with st.expander("🐟 BIOLOGISCHE FAKTOREN"):
+    b1, b2, b3 = st.columns(3)
+    with b1:
+        besatz = st.selectbox("Gewässertyp", ["Low Stock (Großfisch)", "Medium Stock", "High Stock (Paylake)"])
+    with b2:
+        aktivitat = st.select_slider("Fraßanzeichen", options=["Null", "Vereinzelt Blasen", "Springende Fische", "Fressrausch"])
+    with b3:
+        beissdruck = st.select_slider("Angeldruck", options=["Niedrig", "Mittel", "Extrem hoch"])
+
+# ==========================================
+# 2. EXPERTEN-LOGIK: DIE BERECHNUNG
+# ==========================================
+
+# A. Bleigewicht-Physik (Berechnung nach Distanz & Strömung)
+def calculate_lead_physics():
+    base = 85
+    if distanz > 100: base = 115
+    if distanz > 140: base = 135
     
-    st.subheader("🌊 Gewässer")
-    boden = st.selectbox("Untergrund", ["Kies/Sand (Hart)", "Schlamm (Weich)", "Kraut (Dicht)", "Fadenalgen (Leicht)"])
-    hindernisse = st.multiselect("Hindernisse", ["Muscheln", "Totholz", "Steine", "Keine"])
+    # Strömungs-Vektor hinzufügen
+    flow_map = {"Keiner": 0, "Leicht (Kanal)": 20, "Mittel (Fluss)": 60, "Stark (Strom)": 110}
+    final_weight = base + flow_map[stromung]
     
-    st.subheader("🐟 Zielfisch & Biologie")
-    aktivitat = st.select_slider("Fisch-Aktivität", ["Träge (Winter)", "Vorsichtig", "Normal", "Aggressiv (Sommer)"])
-    gewicht = st.number_input("Erwartetes Gewicht (kg)", 5, 40, 15)
+    # Form-Empfehlung
+    shape = "Flat Pear" if stromung != "Keiner" else "Distance Casting"
+    if grund == "Schlamm (fest)": shape = "Grippa oder Trilobe"
     
-# =========================
-# Experten-Logik
-# =========================
+    return final_weight, shape
 
-# 1. Köder-Logik
-def determine_bait():
-    if boden == "Kraut (Dicht)": return "Pop-Up (Fluo)", 3, "Muss über das Kraut gehoben werden."
-    if boden == "Schlamm (Weich)": return "Wafter (Schwerelos)", 2, "Sinkt nicht in den Schlamm ein."
-    if aktivitat == "Vorsichtig": return "Kleiner Wafter / Balanced", 2, "Minimaler Widerstand beim Einsaugen."
-    if aktivitat == "Träge (Winter)": return "Einzelner kleiner Pop-Up", 3, "Hoher visueller Reiz bei wenig Hunger."
-    return "Standard Boilie / Snowman", 1, "Bewährte Präsentation für aktive Fische."
-
-bait_name, bait_type, bait_reason = determine_bait()
-
-# 2. Rig-Scoring
-def get_best_rigs():
-    scored = []
-    for r in RIGS:
-        score = 0
-        if methode == "Wurf" and distanz > r["cast"]: continue
-        if boden == "Kraut (Dicht)" and not r["weed"]: continue
-        
-        # Match Typ
-        if bait_type in r["types"]: score += 60
-        
-        # Match Bodenhärte
-        if boden == "Kies/Sand (Hart)" and r["stiff"]: score += 20
-        if boden == "Schlamm (Weich)" and not r["stiff"]: score += 15
-        
-        # Match Aktivität
-        if aktivitat == "Vorsichtig" and "Slip D" in r["name"]: score += 20
-        if aktivitat == "Aggressiv (Sommer)" and r["name"] == "Ronnie Rig": score += 20
-        
-        scored.append((score, r))
-    return sorted(scored, key=lambda x: x[0], reverse=True)
-
-# 3. Material-Tuning (Die "Feinheiten")
-def get_fine_tuning(rig_name):
-    # Standardwerte
-    hook_size = 4
-    material = "Coated Braid (25lb)"
-    length = "15-20 cm"
-    lead_system = "Safety Clip"
+# B. Rig & Material-Spezifikation
+def get_detailed_setup():
+    setup = {}
     
-    # Situative Anpassung
-    if gewicht > 20 or "Muscheln" in hindernisse or "Totholz" in hindernisse:
-        hook_size = 2
-        material = "Stiff Mono / Snag Leader"
-        
-    if aktivitat == "Träge (Winter)":
-        hook_size = 6
-        length = "10-12 cm (Kurze Wege)"
-        material = "Soft Braid (geschmeidig)"
-        
-    if "Chod Rig" in rig_name:
-        length = "5-8 cm"
-        lead_system = "Helicopter (Naked Chod)"
-        material = "Rigid Mouthtrap (Mono)"
-        
-    if distanz > 100 and "Chod" not in rig_name:
-        lead_system = "Helicopter (Anti-Tangle)"
-        
-    if boden == "Schlamm (Weich)" and "Chod" not in rig_name:
-        length = "25-30 cm (Verhindert Einsinken)"
-        
-    return hook_size, material, length, lead_system
+    # 1. Köder-Präsentation (Zentrale Entscheidung)
+    if "Kraut" in grund or grund == "Modder (faulig)":
+        setup["rig"] = "Chod Rig" if distanz < 100 else "Ronnie Rig (am Heli-System)"
+        setup["bait_type"] = "Pop-Up (high buoyancy)"
+        setup["color"] = "Fluoro White/Pink" if truebung in ["0-20cm (Null)", "20-100cm (Trüb)"] else "Washed Out Pink"
+    elif jahreszeit == "Winter (Lethargie)":
+        setup["rig"] = "Slip D-Rig"
+        setup["bait_type"] = "Kleine Wafter (12-14mm)"
+        setup["color"] = "Gelb (optischer Reiz)"
+    else:
+        setup["rig"] = "Blowback Rig (Kombi-Vorfach)"
+        setup["bait_type"] = "Snowman / Bodenköder"
+        setup["color"] = "Matching (Boilie-Farbe)"
 
-# =========================
-# UI Ausgabe
-# =========================
-st.header("🎯 Dein Profi-Setup")
+    # 2. Material-Spezifikationen (Die Profi-Details)
+    if stromung in ["Mittel (Fluss)", "Stark (Strom)"]:
+        setup["link_material"] = "Fluorocarbon 30lb (steif)"
+        setup["link_length"] = "12-15cm (kurz gegen Verheddern)"
+    elif grund == "Modder (faulig)":
+        setup["link_material"] = "Uncoated Braid (weich/sinkend)"
+        setup["link_length"] = "25-35cm (lang gegen Versinken)"
+    else:
+        setup["link_material"] = "Coated Braid (25lb) - letzte 2cm abgemantelt"
+        setup["link_length"] = "18-22cm"
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.subheader("💡 Köder-Strategie")
-    st.info(f"**Empfehlung:** {bait_name}")
-    st.caption(f"Grund: {bait_reason}")
-
-top_results = get_best_rigs()
-if top_results:
-    best_rig = top_results[0][1]
-    h_size, m_type, r_len, l_sys = get_fine_tuning(best_rig["name"])
-    
-    with col2:
-        st.subheader("🏗️ Rig-Architektur")
-        st.success(f"**Primär-Rig:** {best_rig['name']}")
-        st.write(best_rig["desc"])
+    # 3. Haken-Spezifikation
+    if "Muschelbänke" in hindernisse or fisch_groesse := 20: # Simulierter Wert
+        setup["hook"] = "Gr. 2 Wide Gape (Heavy Duty)"
+    else:
+        setup["hook"] = "Gr. 4-6 Curved Shank"
         
-    with col3:
-        st.subheader("🛠️ Material-Feintuning")
-        st.markdown(f"""
-        - **Hakengröße:** {h_size}
-        - **Vorfachmaterial:** {m_type}
-        - **Vorfachlänge:** {r_len}
-        - **Bleisystem:** {l_sys}
-        """)
+    return setup
 
-st.markdown("---")
-st.subheader("📋 Alternative Rigs für dieses Szenario")
-cols = st.columns(len(top_results[1:4]))
-for i, (score, r) in enumerate(top_results[1:4]):
-    with cols[i]:
-        st.metric(label=f"Platz {i+2}", value=r["name"])
-        st.caption(r["desc"])
+# ==========================================
+# 3. OUTPUT: DAS TACTICAL PROTOCOL
+# ==========================================
+st.divider()
+final_setup = get_detailed_setup()
+lead_w, lead_s = calculate_lead_physics()
 
-st.markdown("---")
-# Profi-Checkliste
-with st.expander("✅ Profi-Checkliste vor dem Auswerfen"):
-    st.write("""
-    1. **Schärfe-Test:** Haken über den Fingernagel ziehen. Er muss hängen bleiben!
-    2. **Köder-Check:** Prüfe im Uferwasser, ob das Rig genau so steht, wie du es willst.
-    3. **Anti-Tangle:** Nutze PVA-Nuggets oder Anti-Tangle-Sleeves bei weiten Würfen.
-    4. **Sicherheit:** Läuft das Blei im Falle eines Schnurbruchs frei vom Leader ab?
-    """)
+st.header("📋 Taktisches Einsatzprotokoll")
+
+col_res1, col_res2, col_res3 = st.columns(3)
+
+with col_res1:
+    st.subheader("🏗️ Endtackle & Montage")
+    st.metric("Bleigewicht", f"{lead_w} g", delta=f"Form: {lead_s}", delta_color="normal")
+    st.write(f"**Leader:** {'Quicksilver Gold (35lb)' if len(hindernisse) > 0 else 'Leadcore / Leadfree 45lb'}")
+    st.write(f"**Bleisystem:** {'Helicopter (Naked)' if 'Schlamm' in grund else 'Safety Clip (Heavy Duty)'}")
+
+with col_res2:
+    st.subheader("🪝 Rig-Spezifikation")
+    st.success(f"**Typ:** {final_setup['rig']}")
+    st.write(f"**Material:** {final_setup['link_material']}")
+    st.write(f"**Länge:** {final_setup['link_length']}")
+    st.write(f"**Haken:** {final_setup['hook']}")
+    st.info(f"**Knoten:** {'D-Loop / Krimpen' if 'Fluoro' in final_setup['link_material'] else 'No-Knot + Shrink Tube'}")
+
+with col_res3:
+    st.subheader("🍱 Köder-Konfiguration")
+    st.warning(f"**Präsentation:** {final_setup['bait_type']}")
+    st.write(f"**Farbschema:** {final_setup['color']}")
+    st.write(f"**Attraktion:** {'Alkohol-basiert (Flavor)' if temp < 8 else 'Öl-basiert (Lachs/Fisch)'}")
+
+# Strategie-Text
+st.divider()
+st.subheader("🧠 Taktische Begründung")
+st.write(f"""
+Basierend auf der **{jahreszeit}** und dem Untergrund **({grund})** wurde ein Setup gewählt, das die **{final_setup['rig']}**-Mechanik nutzt. 
+Da die Trübung bei **{truebung}** liegt, setzen wir auf **{final_setup['color']}**, um den Fisch visuell zum Spot zu führen. 
+Das Bleigewicht von **{lead_w}g** stellt sicher, dass der Selbsthakeffekt auch bei **{stromung}** Strömung und einer Distanz von **{distanz}m** unmittelbar eintritt.
+""")
+
+if len(hindernisse) > 0:
+    st.error(f"⚠️ **GEFAHRENHINWEIS:** Aufgrund von {', '.join(hindernisse)} ist 
