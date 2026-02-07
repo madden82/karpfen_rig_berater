@@ -3,20 +3,21 @@ import streamlit as st
 # =========================
 # Setup & Design
 # =========================
-st.set_page_config(page_title="Karpfen-Taktik Berater Pro", layout="wide")
+st.set_page_config(page_title="Karpfen Rig Empfehlung", layout="wide")
 
-# CSS für bessere Mobile-Bedienung (verhindert teils das Springen der Regler)
+# CSS für bessere Mobile-Bedienung
 st.markdown("""
     <style>
     .stSlider { padding-bottom: 20px; }
+    .stHeader { font-size: 1.5rem !important; }
     @media (max-width: 640px) {
         .main { padding: 10px; }
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🎖️ Karpfen-Taktik Berater Pro")
-st.caption("Einsatzplanung v4.1 | Mobile Optimierung & Präzisions-Setup")
+st.title("🎖️ Karpfen Rig Empfehlung")
+st.caption("Einsatzplanung v4.3 | Mobile Optimierung & Bereinigte Texte")
 
 # ==========================================
 # 1. PHASE: GEWÄSSER & UMWELT
@@ -42,11 +43,9 @@ with c2:
 with c3:
     st.markdown("**Wind & Wasser**")
     wasser_klarheit = st.select_slider("Sichttiefe / Klarheit", options=["Trüb", "Mittel", "Klar", "Glasklar"])
-    # "Sturm" zu "Stark" geändert
     windstärke = st.select_slider("Windstärke", options=["Windstill", "Leicht", "Mittel", "Stark"])
-    # "Auflandig" zu "Gegenwind" präzisiert
-    windrichtung = st.selectbox("Windrichtung zum Spot", ["Gegenwind (Wind drauf)", "Rückenwind (Ablandig)", "Seitenwind"])
-    # Temperatur auf 0-35 Grad erweitert
+    # Klammern und Zusatztexte entfernt
+    windrichtung = st.selectbox("Windrichtung zum Spot", ["Gegenwind", "Rückenwind", "Seitenwind"])
     temp = st.slider("Wassertemperatur (°C)", 0, 35, 15)
 
 # ==========================================
@@ -69,7 +68,6 @@ with t1:
 
 with t2:
     st.markdown("**Bestand (andere Fischarten)**")
-    # Klarstellung: Andere Weißfische
     weissfisch = st.select_slider("Vorkommen anderer Weißfische (Brassen/Rotaugen/etc.)", options=["Niedrig", "Mittel", "Hoch", "Extrem"])
     aktivitaet = st.select_slider("Aktivität der Karpfen", options=["Apathisch", "Vorsichtig", "Normal", "Aggressiv"])
     ziel_gewicht = st.number_input("Max. erwartetes Karpfengewicht (kg)", 5, 40, 15)
@@ -86,12 +84,10 @@ def berechne_pro_logic():
         "montage": "Safety Clip",
         "optimum": "Ummanteltes Geflecht (25lb)",
         "braid_alt": "Weiches Geflecht (20lb) + Anti-Tangle-Hülse",
-        "spot_tipp": "",
         "begruendung": []
     }
 
-    # Spot-Tipps basierend auf Wind & Jahreszeit
-    if windrichtung == "Gegenwind (Wind drauf)":
+    if windrichtung == "Gegenwind":
         setup["begruendung"].append("➔ **Wind:** Gegenwind drückt Nahrung und warmes Oberflächenwasser an dein Ufer. Top Spot!")
     
     if jahreszeit == "Winter" or temp < 6:
@@ -100,12 +96,16 @@ def berechne_pro_logic():
 
     if weissfisch in ["Hoch", "Extrem"]:
         setup["begruendung"].append("➔ **Weißfisch-Druck:** Harte Köder und selektive Montagen wählen.")
+        
+    if any(h in str(hindernisse) for h in ["Muschel", "Totholz", "Kante"]):
+        setup["haken"] = "2 bis 4 (Starkdrahtig)"
+        setup["optimum"] = "Fluorocarbon-Schlagschnur + Snag-Link"
+        setup["begruendung"].append("➔ **Schutz:** Hindernisse erfordern verstärktes Material.")
 
     return setup
 
 ergebnis = berechne_pro_logic()
 
-# Futter-Logik
 def berechne_futter():
     basis = 0.5 
     if jahreszeit == "Herbst": basis += 2.0
