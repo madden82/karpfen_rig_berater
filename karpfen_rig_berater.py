@@ -6,7 +6,7 @@ import streamlit as st
 st.set_page_config(page_title="Karpfen-Taktik Berater Pro", layout="wide")
 
 st.title("🎖️ Karpfen-Taktik Berater Pro")
-st.caption("Präzisions-Einsatzplanung v3.5 | Fehlerkorrekturen & Intelligente Tipps")
+st.caption("Präzisions-Einsatzplanung v3.6 | Mit taktischer Entscheidungs-Analyse")
 
 # ==========================================
 # 1. PHASE: GEWÄSSER-PROFIL
@@ -27,8 +27,7 @@ with c2:
     boden_struktur = st.selectbox("Bodenbeschaffenheit wählen", 
                                  ["Sand / Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Moder (faulig / weich)"])
     
-    # Eindeutschung der Auswahlbox
-    hindernisse = st.multiselect("Hindernisse / Gefahren am Platz (Mehrfachauswahl möglich)", [
+    hindernisse = st.multiselect("Hindernisse / Gefahren am Platz", [
         "Muschelbänke (scharfkantig)", 
         "Totholz / Versunkene Bäume", 
         "Kraut (vereinzelt)", 
@@ -75,62 +74,49 @@ with t2:
     ziel_gewicht = st.number_input("Erwartetes Fischgewicht (kg)", 5, 40, 15)
 
 # ==========================================
-# 3. PHASE: EXPERTEN-ENGINE
+# 3. PHASE: EXPERTEN-ENGINE & LOGIK-ERKLÄRUNG
 # ==========================================
 
-def berechne_taktik(t_typ, w_weite, h_liste, w_aufkommen, f_aktiv, temp_v):
+def berechne_taktik_mit_begruendung():
     setup = {
         "rig": "Haar-Rig (Hair Rig)",
-        "haken_range": "4 bis 6",
-        "blei_g": 95,
-        "montage": "Safety Clip (Sicherheits-Clip)",
-        "material_opt": "Ummanteltes Geflecht (25lb)",
-        "material_alt": "Weiches Geflecht (20lb) + Anti-Tangle-Hülse",
+        "haken": "4 bis 6",
+        "blei": 95,
+        "montage": "Safety Clip",
+        "material": "Ummanteltes Geflecht (25lb)",
         "laenge": 18,
-        "koeder": "Standard Boilie (20mm)",
-        "zusatz": "Standard-Leader",
-        "tipp": ""
+        "begruendung": []
     }
 
-    # --- KÖDER- & TIPP-LOGIK ---
-    if w_aufkommen in ["Hoch", "Extrem"] or "Krebse / Wollhandkrabben" in h_liste:
-        setup["koeder"] = "Harte Boilies (24mm+) / Selektive Köder"
-        setup["rig"] = "D-Rig / Slip-D"
-        setup["tipp"] = f"Bei {w_aufkommen}er Konkurrenz liegt der Fokus auf Selektion. Verwende große, harte Köder."
+    # 1. Rig-Wahl Begründung
+    if any("Kraut" in h for h in hindernisse) or boden_struktur == "Moder (faulig / weich)":
+        setup["rig"] = "Ronnie-Rig / Chod-Rig"
+        setup["begruendung"].append("➔ **Rig:** Pop-Up Montage gewählt, damit der Köder nicht im Kraut/Modder versinkt und sichtbar bleibt.")
+    elif wasser_klarheit == "Glasklar":
+        setup["rig"] = "D-Rig (Fluorocarbon)"
+        setup["begruendung"].append("➔ **Rig:** D-Rig mit FC gewählt, da die Fische bei hoher Sichtweite herkömmliche Geflechte leichter wahrnehmen.")
     else:
-        setup["koeder"] = "Attraktive Boilies (16-20mm) / Pellets / Partikel"
-        setup["tipp"] = f"Bei niedrigem Weißfischaufkommen kannst du voll auf Attraktivität setzen. Nutze Partikel und lösliche Köder!"
+        setup["begruendung"].append("➔ **Rig:** Klassisches Haar-Rig gewählt, da der Boden sauber ist und die Mechanik hier am zuverlässigsten arbeitet.")
 
-    # --- HINDERNISSE ---
-    if any("Kraut" in h for h in h_liste):
-        setup["montage"] = "Helicopter-System (Abwurf-Blei)"
-    
-    if any(s in str(h_liste) for s in ["Muschel", "Kante", "Holz"]):
-        setup["haken_range"] = "2 bis 4 (Dickdrahtig)"
-        setup["zusatz"] = "Schlagschnur (0.60mm) zwingend!"
+    # 2. Blei & Montage Begründung
+    if stromung != "Keine" or "Starker Schiffsverkehr" in hindernisse:
+        setup["blei"] = 240 if stromung == "Stark" else 140
+        setup["montage"] = "Grippa-Inliner oder schwerer Safety-Clip"
+        setup["begruendung"].append(f"➔ **Blei:** Erhöht auf {setup['blei']}g, um den Montagen-Sitz bei Strömungsdruck/Sog stabil zu halten.")
+    elif taktik_typ == "Wurf" and wurfweite > 100:
+        setup["blei"] = 115
+        setup["montage"] = "Helicopter-System"
+        setup["begruendung"].append("➔ **Montage:** Helicopter-System gewählt, um Verwicklungen im Weitwurf physikalisch auszuschließen.")
 
-    # --- PHYSIK ---
-    if t_typ == "Wurf":
-        setup["blei_g"] = 115 if w_weite > 90 else 90
-    if stromung == "Stark":
-        setup["blei_g"] = 240
+    # 3. Material & Schutz Begründung
+    if any(s in str(hindernisse) for s in ["Muschel", "Kante", "Holz", "Müll"]):
+        setup["material"] = "Fluorocarbon-Schlagschnur (50lb+) / Abriebfest"
+        setup["haken"] = "2 bis 4 (Dickdrahtig)"
+        setup["begruendung"].append("➔ **Schutz:** Dickdrahtige Haken und Schlagschnur gewählt, um Fischverluste durch scharfe Kanten oder Hindernis-Fluchten zu verhindern.")
 
     return setup
 
-ergebnis = berechne_taktik(taktik_typ, wurfweite, hindernisse, weissfisch_aufkommen, fisch_aktivitaet, temp)
-
-# Futter-Berechnung
-def berechne_futter():
-    basis = 0.5
-    if temp > 18: basis += 1.5
-    elif temp < 10: basis = 0.2
-    if fisch_aktivitaet == "Aggressiv": basis *= 2
-    if weissfisch_aufkommen == "Hoch": basis += 1.0
-    if weissfisch_aufkommen == "Extrem": basis += 2.5
-    art = "Boilies (pur)" if weissfisch_aufkommen in ["Hoch", "Extrem"] else "Mix aus Boilies, Pellets & Partikeln"
-    return round(basis, 1), art
-
-f_menge, f_art = berechne_futter()
+ergebnis = berechne_taktik_mit_begruendung()
 
 # ==========================================
 # 4. PHASE: AUSGABE
@@ -142,21 +128,24 @@ o1, o2, o3 = st.columns(3)
 
 with o1:
     st.subheader("📦 Montage & Blei")
-    st.metric("Bleigewicht", f"{ergebnis['blei_g']} g")
+    st.metric("Bleigewicht", f"{ergebnis['blei']} g")
     st.write(f"**System:** {ergebnis['montage']}")
-    st.write(f"**Zusatz:** {ergebnis['zusatz']}")
 
 with o2:
     st.subheader("🪝 Rig & Haken")
-    st.success(f"**Empfehlung:** {ergebnis['rig']}")
-    st.write(f"**Vorfach:** {ergebnis['material_opt']}")
-    st.write(f"**Haken-Range:** {ergebnis['haken_range']}")
+    st.success(f"**Typ:** {ergebnis['rig']}")
+    st.write(f"**Material:** {ergebnis['material']}")
+    st.write(f"**Haken:** Gr. {ergebnis['haken']}")
 
 with o3:
-    st.subheader("🥣 Futter & Köder")
-    st.metric("Menge ca.", f"{f_menge} kg / Tag")
-    st.write(f"**Köder:** {ergebnis['koeder']}")
-    st.write(f"**Futter-Art:** {f_art}")
+    st.subheader("💡 Taktische Analyse (Warum?)")
+    for punkt in ergebnis["begruendung"]:
+        st.write(punkt)
 
 st.divider()
-st.info(f"**Strategischer Tipp:** {ergebnis['tipp']}")
+# Futter-Bereich (vereinfacht für Fokus auf Begründung)
+st.subheader("🥣 Futter-Empfehlung")
+if weissfisch_aufkommen in ["Hoch", "Extrem"]:
+    st.warning("Selektive Fütterung: Nur harte Boilies verwenden (wegen Weißfisch-Konkurrenz).")
+else:
+    st.info("Attraktive Fütterung: Partikel-Mix und Pellets möglich (wenig Konkurrenz).")
