@@ -1,477 +1,219 @@
-import streamlit as st
+# ==============================
+# KARPEN-RIG BERATER – Profi Version
+# ==============================
 
-# =========================
-# Konfiguration
-# =========================
-st.set_page_config(
-    page_title="🎣 Profi‑Karpfen Rig & Vorfach Berater",
-    layout="centered"
-)
-
-st.title("🎣 Profi‑Karpfen Rig & Vorfach Berater")
-st.caption("Detaillierte Baupläne für Carp Rigs — Profi‑tauglich und dynamisch angepasst")
-
-# =========================
-# Eingabebereich
-# =========================
-
-st.header("🌊 Gewässer & Umwelt")
-gewaesser_typ = st.selectbox("Gewässertyp", ["Teich", "See", "Fluss", "Strom"])
-st.caption("Teich/See: stehendes Wasser | Fluss/Strom: Strömung beachten")
-
-fliessgeschwindigkeit = 0.0
-if gewaesser_typ in ["Fluss", "Strom"]:
-    fliessgeschwindigkeit = st.slider(
-        "Fließgeschwindigkeit (m/s)", 0.0, 2.0, 0.5, 0.1)
-    st.caption("0 = kaum Strömung | 2 = starke Strömung (stabile Rigs nötig)")
-
-jahreszeit = st.selectbox("Jahreszeit", ["Frühling", "Sommer", "Herbst", "Winter"])
-wasser_truebung = st.slider("Wassertrübung (0 = klar, 10 = trüb)", 0, 10, 3)
-wassertemperatur = st.slider("Wassertemperatur (°C)", 4, 30, 16)
-
-st.header("🏞️ Boden & Pflanzen")
-boden = st.selectbox("Bodenbeschaffenheit", ["hart", "weich", "schlammig"])
-kraut = st.checkbox("Kraut vorhanden 🌿")
-st.subheader("Hindernisse")
-hindernisse_muscheln = st.checkbox("Muscheln / Steine")
-hindernisse_aeste = st.checkbox("Äste / Unterholz")
-hindernisse_grund = st.checkbox("Andere Hindernisse")
-hindernisse = []
-if hindernisse_muscheln: hindernisse.append("muscheln/steine")
-if hindernisse_aeste: hindernisse.append("äste/unterholz")
-if hindernisse_grund: hindernisse.append("andere")
-
-st.header("🐟 Fisch & Angelbedingungen")
-angeldruck = st.selectbox("Angeldruck", ["niedrig", "mittel", "hoch"])
-vorsichtige_fische = angeldruck == "hoch"
-
-weissfisch = st.slider("Weißfisch‑Anteil (%)", 0, 10, 4)
-max_karpfen = st.slider("Erwartetes Karpfengewicht (kg)", 5, 35, 15)
-
-modus = st.radio("Ziel", ["🎯 Maximale Fangquote", "🛡 Maximale Sicherheit"])
-wurfweite = st.slider("Wurfweite (Meter)", 10, 120, 40)
-
-# =========================
-# Köder‑Empfehlung
-# =========================
-
-def koeder_empfehlung():
-    if wassertemperatur < 10 or jahreszeit == "Winter":
-        return "Pop‑Up", 14, "Kaltwasser & Winter – auffällig"
-    if weissfisch >= 6:
-        return "Harter Boilie", 22, "Schützt vor Weißfisch"
-    if vorsichtige_fische:
-        return "Wafter", 18, "Unauffällig & effektiv"
-    if wasser_truebung > 6:
-        return "Leuchtender Pop‑Up", 16, "Trübes Wasser – auffällig"
-    return "Boilie", 20, "Standardköder – bewährt"
-
-# =========================
-# Rig‑Bibliothek (ausgewählte Profi‑Rigs, 25+)
-# =========================
-# Jeder Rig: name, einsatz, vorfach (Material, Länge), aufbau (Schritte)
-
-RIG_LIBRARY = [
-    # Beispielrigs, können erweitert werden
-    {
-        "name": "Hair Rig",
-        "einsatz": "Universell, besonders Bodenköder",
-        "vorfach": ("Mono", 25),
-        "aufbau": [
-            "1. Vorfach auf gewünschte Länge zuschneiden (15–30 cm)",
-            "2. Haken anbinden (Größe abhängig vom Karpfengewicht)",
-            "3. Haar mit Boiliestopper ausrichten",
-            "4. Köder auf Haar aufziehen"
-        ]
-    },
-    {
-        "name": "Blowback Rig",
-        "einsatz": "Bodenköder, hoher Hakeffekt",
-        "vorfach": ("Mono weich", 20),
-        "aufbau": [
-            "1. Vorfach auf etwa 15–20 cm zuschneiden",
-            "2. Rig Ring über Hakenschenkel ziehen",
-            "3. Haken anbinden",
-            "4. Köder über Haar und Stopper fixieren"
-        ]
-    },
-    {
-        "name": "Ronnie Rig",
-        "einsatz": "Pop‑Ups knapp über Grund",
-        "vorfach": ("Stiff", 18),
-        "aufbau": [
-            "1. Vorfachmaterial auf 15–20 cm zuschneiden",
-            "2. Haken anbinden (Wide Gape)",
-            "3. Anti‑Tangle Sleeve/Schlauch positionieren",
-            "4. Pop‑Up am Haar fixieren"
-        ]
-    },
-    {
-        "name": "D‑Rig",
-        "einsatz": "Pop‑Ups direkt am Ring",
-        "vorfach": ("Stiff", 20),
-        "aufbau": [
-            "1. Vorfach (Fluorocarbon oder stiff) zuschneiden (20 cm)",
-            "2. Ringwirbel auffädeln",
-            "3. Haken anbinden und Ring durch Öhr führen",
-            "4. Vorfach verdicken (leicht erhitzen)",
-            "5. Pop‑Up befestigen"
-        ]
-    },
-    {
-        "name": "Chod Rig",
-        "einsatz": "Weicher Grund, Kraut",
-        "vorfach": ("Stiff", 12),
-        "aufbau": [
-            "1. Leadermaterial ~90–110 cm",
-            "2. Ringwirbel auffädeln",
-            "3. Kurzes steifes Vorfach (~12–15 cm)",
-            "4. Stopper fixieren Vorfachposition",
-            "5. Haken anbinden und Köder anbringen"
-        ]
-    },
-    {
-        "name": "Helicopter Rig",
-        "einsatz": "Verhedderungsfrei bei Hindernissen",
-        "vorfach": ("Mono", 20),
-        "aufbau": [
-            "1. Leadcore/Mono als Hauptbasis",
-            "2. Wirbel & Perlen auffädeln",
-            "3. Kurzes Vorfach anbinden",
-            "4. Haken anbinden und Köder platzieren"
-        ]
-    },
-    {
-        "name": "Bolt Rig",
-        "einsatz": "Starkes Selbsthaken bei Strömung",
-        "vorfach": ("Stiff", 25),
-        "aufbau": [
-            "1. Vorfach zuschneiden (~25 cm)",
-            "2. Haken anbinden",
-            "3. Blei direkt ans Vorfach",
-            "4. Köder fixieren"
-        ]
-    },
-    {
-        "name": "Wafter Rig",
-        "einsatz": "Unauffällig, mittig im Wasser",
-        "vorfach": ("Stiff", 18),
-        "aufbau": [
-            "1. Kurzes Vorfach zuschneiden (15–18 cm)",
-            "2. Haken anbinden",
-            "3. Wafter fixieren (Köder balancieren)"
-        ]
-    },
- 
-    # — Allround / Bodenköder —
-    {
-        "name": "Hair Rig",
-        "einsatz": "Universell, besonders für Boilies",
-        "vorfach": ("Mono", 25),
-        "aufbau": [
-            "1. Vorfach (Mono) auf 15–30 cm zuschneiden",
-            "2. Haken anbinden (angepasst an Karpfengewicht)",
-            "3. Haar mit Boiliestopper ausrichten",
-            "4. Köder auf Haar aufziehen"
-        ]
-    },
-    {
-        "name": "Blowback Rig",
-        "einsatz": "Bodenköder, sehr sicherer Hakeffekt",
-        "vorfach": ("Mono weich", 20),
-        "aufbau": [
-            "1. Vorfach auf ca. 15–20 cm zuschneiden",
-            "2. Rig‑Ring über Hakenschenkel ziehen",
-            "3. Haken anbinden",
-            "4. Köder (Boilie/Pop‑Up) fixieren"
-        ]
-    },
-
-    # — Pop‑Up / erhöhte Präsentation —
-    {
-        "name": "Ronnie Rig",
-        "einsatz": "Pop‑Ups knapp über Grund",
-        "vorfach": ("Stiff", 18),
-        "aufbau": [
-            "1. Vorfach material auf 15–20 cm zuschneiden",
-            "2. Haken anbinden (Wide Gape)",
-            "3. Anti‑Tangle Sleeve/Schlauch positionieren",
-            "4. Pop‑Up am Haar fixieren"
-        ]
-    },
-    {
-        "name": "D‑Rig",
-        "einsatz": "Pop‑Ups direkt am Rig‑Ring",
-        "vorfach": ("Stiff", 20),
-        "aufbau": [
-            "1. Vorfach zuschneiden (20 cm)",
-            "2. Ringwirbel auffädeln",
-            "3. Haken anbinden und Ring durch Öhr führen",
-            "4. Vorfachende leicht verdicken",
-            "5. Pop‑Up befestigen"
-        ]
-    },
-    {
-        "name": "Slip‑D Rig",
-        "einsatz": "Variation des D‑Rig mit gleitendem Ring",
-        "vorfach": ("Stiff", 20),
-        "aufbau": [
-            "1. Vorfach zuschneiden",
-            "2. Ringwirbel auffädeln",
-            "3. Haken anbinden und Ring durch Öhr führen",
-            "4. Stopper sauber setzen"
-        ]
-    },
-    {
-        "name": "Wafter Rig",
-        "einsatz": "Unauffällige Präsentation fast am Grund",
-        "vorfach": ("Stiff", 18),
-        "aufbau": [
-            "1. Vorfach zuschneiden (15–18 cm)",
-            "2. Haken anbinden",
-            "3. Wafter fixieren (balanciert den Köder)"
-        ]
-    },
-
-    # — Rigs für schwierige Bedingungen —
-    {
-        "name": "Chod Rig",
-        "einsatz": "Weicher Grund / Kraut",
-        "vorfach": ("Stiff short", 12),
-        "aufbau": [
-            "1. Leadermaterial ~90–110 cm",
-            "2. Ringwirbel auffädeln",
-            "3. Kurzes steifes Vorfach (~12–15 cm)",
-            "4. Stopper fixieren Vorfachposition",
-            "5. Haken anbinden & Köder anbringen"
-        ]
-    },
-    {
-        "name": "Helicopter Rig",
-        "einsatz": "Verhedderungsfrei über Hindernissen",
-        "vorfach": ("Mono", 20),
-        "aufbau": [
-            "1. Leadcore/Mono als Basis",
-            "2. Wirbel & Perlen auffädeln",
-            "3. Kurzes Vorfach anbinden",
-            "4. Haken anbinden & Köder platzieren"
-        ]
-    },
-    {
-        "name": "Beehive Rig",
-        "einsatz": "Fester Sitz am Boden unter Hindernissen",
-        "vorfach": ("Mono", 18),
-        "aufbau": [
-            "1. Vorfach kürzer zuschneiden (ca. 18 cm)",
-            "2. Haken anbinden",
-            "3. Kleine Perle preventiert Durchrutschen",
-            "4. Köder auf Haar fixieren"
-        ]
-    },
-
-    # — Strömungsbetonte Rigs —
-    {
-        "name": "Bolt Rig",
-        "einsatz": "Starker Selbsthakeffekt bei Strömung",
-        "vorfach": ("Stiff", 25),
-        "aufbau": [
-            "1. Vorfach zuschneiden (~25 cm)",
-            "2. Haken anbinden",
-            "3. Direktes Blei ans Vorfach",
-            "4. Köder fixieren"
-        ]
-    },
-    {
-        "name": "Linguine Rig",
-        "einsatz": "Strömung + Slacker Ground",
-        "vorfach": ("Fluorocarbon", 22),
-        "aufbau": [
-            "1. Vorfach zuschneiden (20–22 cm)",
-            "2. Haken anbinden",
-            "3. Vorfach durch Strömungslinie ausrichten"
-        ]
-    },
-
-    # — Grund‑ & Spezialmontagen —
-    {
-        "name": "Method Feeder Rig",
-        "einsatz": "Futterplatz‑Fischen",
-        "vorfach": ("Stiff", 20),
-        "aufbau": [
-            "1. Vorfach zuschneiden",
-            "2. Haken anbinden",
-            "3. Rig am Method Feeder befestigen"
-        ]
-    },
-    {
-        "name": "KD Rig (Kenny Dorset)",
-        "einsatz": "Universell & einfach",
-        "vorfach": ("Fluorocarbon", 20),
-        "aufbau": [
-            "1. Vorfach zuschneiden (~20 cm)",
-            "2. Haken anbinden (Curve Shank)",
-            "3. Perle als Stopper nutzen",
-            "4. Köder auf Haar aufziehen"
-        ]
-    },
-    {
-        "name": "Line‑Aligner Rig",
-        "einsatz": "Perfekte Hakenausrichtung",
-        "vorfach": ("Fluorocarbon", 20),
-        "aufbau": [
-            "1. Line Aligner über Hakenöhr schieben",
-            "2. Vorfach anbinden",
-            "3. Köder auf Haar platzieren"
-        ]
-    },
-    {
-        "name": "Teller Rig",
-        "einsatz": "Stabil bei Grundstrukturen",
-        "vorfach": ("Mono", 20),
-        "aufbau": [
-            "1. Vorfach zuschneiden",
-            "2. Teller‑Perle positionieren",
-            "3. Haken anbinden",
-            "4. Köder auf Haar fixieren"
-        ]
-    },
-
-    # — Oberflächen‑ bzw. Spezial‑Rigs —
-    {
-        "name": "Zig Rig",
-        "einsatz": "Köder in Wassersäule",
-        "vorfach": ("Fluorocarbon", 40),
-        "aufbau": [
-            "1. Langes Vorfach zuschneiden (30–50 cm)",
-            "2. Haken anbinden",
-            "3. Poser‑Rigs oder leichte Pop‑Ups nutzen"
-        ]
-    },
-    {
-        "name": "Surface Rig",
-        "einsatz": "Direkt unter der Oberfläche",
-        "vorfach": ("Fluorocarbon", 40),
-        "aufbau": [
-            "1. Sehr langes Vorfach zuschneiden",
-            "2. Haken anbinden",
-            "3. Poser oder flotte Pop‑Ups nutzen"
-        ]
-    },
-
-    # — Ergänzende Varianten —
-    {
-        "name": "Multi Rig / Twin Rig",
-        "einsatz": "Zwei Köder gleichzeitig",
-        "vorfach": ("Stiff", 30),
-        "aufbau": [
-            "1. Zwei Vorfachenden zuschneiden",
-            "2. Beide Haken anbinden",
-            "3. Beide Köder fixieren"
-        ]
-    },
-    {
-        "name": "Offset Rig",
-        "einsatz": "Bodenköder, Anti‑Ausspucken",
-        "vorfach": ("Mono", 25),
-        "aufbau": [
-            "1. Vorfach zuschneiden",
-            "2. Offset‑Haken anbinden",
-            "3. Köder fixieren"
-        ]
-    }
+# ------------------------------
+# RIG-DATENBANK (~50+ Rigs)
+# ------------------------------
+RIGS = [
+    {"name":"Hair Rig","categories":["boden","allround"],"max_cast":200,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Blowback Rig","categories":["boden","allround"],"max_cast":160,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"KD Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False,"river_ok":False},
+    {"name":"German Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":False,"river_ok":False},
+    {"name":"Ronnie Rig","categories":["popup"],"max_cast":130,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Spinner Rig","categories":["popup"],"max_cast":150,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Hinged Stiff Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Combi Rig","categories":["boden","wafter"],"max_cast":170,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"River Rig","categories":["boden","fluss"],"max_cast":100,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Wafter Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":True},
+    {"name":"Slip D Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Hinged Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Naked Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Helicopter Rig","categories":["boden","kraut"],"max_cast":140,"boat_ok":True,"weed_ok":True,"river_ok":True},
+    {"name":"Multi Rig","categories":["boden","wafter"],"max_cast":160,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Stiff D-Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Distance Hair Rig","categories":["boden"],"max_cast":200,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Long Casting KD Rig","categories":["boden"],"max_cast":180,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Snowman Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":True},
+    {"name":"Chod-X Rig","categories":["popup","kraut"],"max_cast":130,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Anti-Tangle Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Teflon Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Method Feeder Rig","categories":["boden"],"max_cast":150,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Bolt Rig","categories":["fluss","popup"],"max_cast":140,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Linguine Rig","categories":["fluss"],"max_cast":130,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Beehive Rig","categories":["boden","kraut"],"max_cast":130,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Helicopter Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Surface Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Zig Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":False,"river_ok":False},
+    {"name":"Offset Rig","categories":["boden"],"max_cast":150,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Line-Aligner Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Teller Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"KD Mini Rig","categories":["boden"],"max_cast":120,"boat_ok":True,"weed_ok":False,"river_ok":False},
+    {"name":"Mini Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Pop-Up Chod Rig","categories":["popup","kraut"],"max_cast":130,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Anti-Weed Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Floating Wafter Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Heavy Distance Rig","categories":["boden"],"max_cast":200,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Fluoro Rig","categories":["boden"],"max_cast":160,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Stiff Pop Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Long Chod Rig","categories":["popup","kraut"],"max_cast":150,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Leadcore Rig","categories":["boden"],"max_cast":160,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Safety Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Snowman Hair Rig","categories":["wafter"],"max_cast":130,"boat_ok":True,"weed_ok":True,"river_ok":True},
+    {"name":"Multi-Hair Rig","categories":["boden","allround"],"max_cast":180,"boat_ok":True,"weed_ok":False,"river_ok":True},
+    {"name":"Top Pop Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Distance Pop-Up Rig","categories":["popup"],"max_cast":200,"boat_ok":True,"weed_ok":True,"river_ok":False},
+    {"name":"Helicopter Distance Rig","categories":["boden","kraut"],"max_cast":200,"boat_ok":True,"weed_ok":True,"river_ok":True},
 ]
 
 
+# ------------------------------
+# EINGABEN
+# ------------------------------
+def ask_required(prompt, options):
+    while True:
+        print(prompt)
+        for i,opt in enumerate(options,1):
+            print(f"{i}: {opt}")
+        choice = input("> ")
+        if choice.isdigit() and 1 <= int(choice) <= len(options):
+            return options[int(choice)-1]
+        print("Ungültige Eingabe.\n")
 
-# =========================
-# Gewichtetes Punktesystem
-# =========================
-def score_rig(rig, koeder):
+def ask_optional(prompt, default=None):
+    val = input(prompt + f" (leer = {default}): ")
+    return val if val else default
+
+print("\n🎣 KARPEN-RIG BERATER – Profi Version\n")
+
+gewaesser = ask_required("Gewässertyp wählen:", ["Teich","See","Fluss"])
+truebung = ask_required("Wassertrübung wählen:", ["klar","mittel","trüb"])
+ausbringung = ask_required("Ausbringungsart:", ["Wurf","Boot","Futterboot"])
+wurfweite = int(input("Wurfweite in Metern: "))
+kraut = ask_optional("Kraut/Hindernisse vorhanden? ja/nein","unbekannt")
+stromung = float(ask_optional("Fließgeschwindigkeit (m/s, leer=0)","0"))
+jahreszeit = ask_required("Jahreszeit:", ["Frühling","Sommer","Herbst","Winter"])
+temperatur = float(input("Wassertemperatur °C: "))
+aggro = int(ask_optional("Aggressivität/Beißverhalten Karpfen (1–10)","5"))
+fischgewicht = float(ask_optional("Erwartetes Karpfengewicht (kg)","15"))
+weissfisch = float(ask_optional("Weißfischanteil %","4"))
+
+# ------------------------------
+# KÖDER-Empfehlung
+# ------------------------------
+def koeder_empfehlung():
+    if temperatur < 10 or jahreszeit=="Winter":
+        return "Pop-Up", 14, "Kaltwasser & Winter – auffällig"
+    if weissfisch >= 6:
+        return "Harter Boilie", 22, "Schützt vor Weißfisch"
+    if aggro <= 4:
+        return "Wafter", 18, "Vorsichtige Fische – unauffällig"
+    if truebung=="trüb":
+        return "Leuchtender Pop-Up",16,"Trübes Wasser – auffällig"
+    return "Boilie",20,"Standardköder – bewährt"
+
+koeder, koeder_mm, koeder_text = koeder_empfehlung()
+
+# ------------------------------
+# SCORE-Funktion für Rigs
+# ------------------------------
+def score_rig(rig):
     score = 0
     name = rig["name"].lower()
 
-    # Gewichtungen
-    gewichtungen = {
-        "pop_up": 10,
-        "kraut": 8,
-        "stroemung": 7,
-        "vorsicht": 6,
-        "boden_weich": 4,
-        "allrounder": 3
-    }
-
-    # Pop-Up Köder
-    if "pop‑up" in koeder.lower() and name in ["ronnie rig", "d‑rig", "chod rig"]:
-        score += gewichtungen["pop_up"]
+    # Pop-Up-Köder
+    if "pop-up" in koeder.lower() and "popup" in rig["categories"]:
+        score += 10
 
     # Kraut
-    if kraut and name in ["chod rig", "helicopter rig"]:
-        score += gewichtungen["kraut"]
+    if kraut=="ja" and rig["weed_ok"]:
+        score += 8
 
     # Strömung
-    if fliessgeschwindigkeit > 0.8 and name in ["bolt rig", "blowback rig"]:
-        score += gewichtungen["stroemung"]
+    if stromung > 0.8 and rig["river_ok"]:
+        score += 7
 
     # Vorsichtige Fische
-    if vorsichtige_fische and name in ["d‑rig", "wafter rig", "slip‑d rig"]:
-        score += gewichtungen["vorsicht"]
+    if aggro <= 4 and name in ["chod rig","wafter rig","slip d rig"]:
+        score += 6
 
-    # Boden weich
-    if boden in ["weich", "schlammig"] and name in ["ronnie rig", "chod rig"]:
-        score += gewichtungen["boden_weich"]
+    # Aggressive Fische
+    if aggro >= 7 and name in ["hair rig","blowback rig","kd rig"]:
+        score += 6
+
+    # Boden weich / Kraut
+    if "boden" in rig["categories"] and kraut=="ja":
+        score += 3
 
     # Allrounder
-    if name in ["hair rig", "blowback rig"]:
-        score += gewichtungen["allrounder"]
+    if "allround" in rig["categories"]:
+        score += 3
 
     return score
 
-def rig_empfehlung(koeder):
-    scored = [(score_rig(rig, koeder), rig) for rig in RIG_LIBRARY]
+# ------------------------------
+# FILTER & TOP-RIGS
+# ------------------------------
+def rig_empfehlung():
+    scored = []
+    for rig in RIGS:
+        # harte Filter
+        if wurfweite > rig["max_cast"]:
+            continue
+        if ausbringung!="Wurf" and not rig["boat_ok"]:
+            continue
+        if gewaesser=="Fluss" and not rig["river_ok"]:
+            continue
+        if kraut=="ja" and not rig["weed_ok"]:
+            continue
+        scored.append( (score_rig(rig), rig) )
     scored.sort(key=lambda x: x[0], reverse=True)
-    return [item[1] for item in scored[:2]]  # zwei beste Rigs
+    return [r for s,r in scored[:7]]  # Top 7 Rigs
 
-# =========================
-# Ausgabe
-# =========================
-if st.button("🎣 Empfehlung anzeigen"):
-    koeder, groesse, koeder_text = koeder_empfehlung()
-    rigs = rig_empfehlung(koeder)
+top_rigs = rig_empfehlung()
 
-    # Dynamische Hakenwahl
-    if max_karpfen >= 25:
-        haken = "Größe 4 Wide Gape"
+# ------------------------------
+# AUSGABE
+# ------------------------------
+print("\n✅ Deine persönliche Rig-Empfehlung:\n")
+print("Köder:", koeder, f"({koeder_mm} mm)")
+print("Hinweis:", koeder_text)
+print("\nGeeignete Rigs:")
+for i,rig in enumerate(top_rigs,1):
+    print(f"{i}: {rig['name']}")
+
+# ------------------------------
+# BAUPLAN-GENERATOR (mit Bilder-Links)
+# ------------------------------
+def rig_bauplan(rig):
+    print("\n📋 BAUPLAN:", rig["name"])
+    print("-"*40)
+
+    # Vorfach
+    if wurfweite>120:
+        vorfach="15–18 cm, steif"
+        blei="Distance Inline 110–130 g"
     else:
-        haken = "Größe 6 Wide Gape"
+        vorfach="20–25 cm, weich"
+        blei="Inline / Safety Clip 90–110 g"
 
-    st.success("✅ Deine persönliche Empfehlung")
+    # Haken
+    if fischgewicht >=25:
+        haken="Größe 4 Wide Gape"
+    else:
+        haken="Größe 6 Wide Gape"
+    if aggro<=4:
+        haken += " – vorsichtig / kleiner"
 
-    st.subheader("📋 Übersicht")
-    rig_namen = ", ".join([r["name"] for r in rigs])
-    st.write(f"**Rig:** {rig_namen}")
-    st.write(f"**Haken:** {haken}")
-    st.write(f"**Vorfachmaterial:** {', '.join([v[0] for v in [r['vorfach'] for r in rigs]])}")
-    st.write(f"**Vorfachlänge:** {', '.join([str(v[1])+' cm' for v in [r['vorfach'] for r in rigs]])}")
+    # Schritt-für-Schritt
+    schritte = [
+        f"1. Vorfach zuschneiden ({vorfach}) – [Bild](https://example.com/vorfach.jpg)",
+        f"2. Haken anbinden ({haken}) – [Bild](https://example.com/haken.jpg)",
+        "3. Knoten: Knotenloser Knoten / Achterknoten – [Bild](https://example.com/knoten.jpg)",
+        f"4. Blei befestigen ({blei}) – [Bild](https://example.com/blei.jpg)",
+        f"5. Köder anbringen ({koeder}) – [Bild](https://example.com/koeder.jpg)",
+        "6. Rig testen im Wasser – [Bild](https://example.com/test.jpg)"
+    ]
+    for s in schritte:
+        print(s)
 
-    st.subheader("🍡 Köder")
-    st.write(f"{koeder} – {groesse} mm")
-    st.caption(koeder_text)
+# ------------------------------
+# BAUPLAN FÜR AUSGEWÄHLTES RIG
+# ------------------------------
+if top_rigs:
+    rig_auswahl = ask_required("\nWähle ein Rig für detaillierten Bauplan:", [r["name"] for r in top_rigs])
+    rig_obj = next(r for r in top_rigs if r["name"]==rig_auswahl)
+    rig_bauplan(rig_obj)
 
-    st.subheader("🪝 Empfohlene Rigs (Bauplan)")
-    for rig in rigs:
-        st.write(f"**{rig['name']}** ({rig['einsatz']})")
-        for schritt in rig["aufbau"]:
-            st.write(schritt)
-
-    st.subheader("⚖️ Blei")
-    blei = 80
-    form = "Inline"
-    if wurfweite > 60:
-        blei += 20
-        form = "Distance"
-    if "muscheln/steine" in hindernisse:
-        blei += 10
-    if fliessgeschwindigkeit > 0.8:
-        blei += 20
-    st.write(f"{blei} g – {form}")
-    st.caption("Blei hilft bei Stabilität und Wurfweite")
+print("\n🎯 Ende des Profi-Rig-Beraters\n")
