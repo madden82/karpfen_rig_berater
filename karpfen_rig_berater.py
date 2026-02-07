@@ -5,37 +5,49 @@ import streamlit as st
 # =========================
 st.set_page_config(page_title="Karpfen-Taktik Berater Pro", layout="wide")
 
+# CSS für bessere Mobile-Bedienung (verhindert teils das Springen der Regler)
+st.markdown("""
+    <style>
+    .stSlider { padding-bottom: 20px; }
+    @media (max-width: 640px) {
+        .main { padding: 10px; }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 st.title("🎖️ Karpfen-Taktik Berater Pro")
-st.caption("Einsatzplanung v4.0 | Präzisions-Tiefen & Spot-Analyse")
+st.caption("Einsatzplanung v4.1 | Mobile Optimierung & Präzisions-Setup")
 
 # ==========================================
 # 1. PHASE: GEWÄSSER & UMWELT
 # ==========================================
-st.header("📍 Schritt 1: Gewässer- & Umweltprofil")
+st.header("📍 Schritt 1: Gewässer & Umwelt")
 c1, c2, c3 = st.columns(3)
 
 with c1:
     gewaesser_typ = st.selectbox("Gewässertyp wählen", 
                                 ["See / Weiher", "Baggersee", "Kanal", "Fluss", "Strom", "Stausee"])
     jahreszeit = st.selectbox("Aktuelle Jahreszeit", ["Frühjahr", "Sommer", "Herbst", "Winter"])
-    # Jetzt mit 0.1m Schritten für maximale Präzision
     tiefe_max = st.number_input("Maximale Tiefe des Gewässers (m)", 1.0, 50.0, 8.0, step=0.1)
     tiefe_spot = st.number_input("Tiefe an deinem Angelplatz (m)", 0.5, 40.0, 3.0, step=0.1)
 
 with c2:
     boden_struktur = st.selectbox("Bodenbeschaffenheit wählen", 
                                  ["Sand / Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Moder (faulig)"])
-    hindernisse = st.multiselect("Hindernisse am Platz", [
+    hindernisse = st.multiselect("Hindernisse / Gefahren am Platz", [
         "Muschelbänke", "Totholz", "Kraut (leicht)", "Kraut-Dschungel", 
         "Fadenalgen", "Scharfe Kanten", "Krebse", "Schiffsverkehr"
-    ], placeholder="Wählen Sie Hindernisse...")
+    ], placeholder="Wählen...")
 
 with c3:
     st.markdown("**Wind & Wasser**")
     wasser_klarheit = st.select_slider("Sichttiefe / Klarheit", options=["Trüb", "Mittel", "Klar", "Glasklar"])
-    windstärke = st.select_slider("Windstärke", options=["Windstill", "Leicht", "Mittel", "Sturm"])
-    windrichtung = st.selectbox("Windrichtung zum Spot", ["Auflandig (Wind drauf)", "Ablandig (Rückenwind)", "Seitenwind"])
-    temp = st.slider("Wassertemperatur (°C)", 2, 30, 15)
+    # "Sturm" zu "Stark" geändert
+    windstärke = st.select_slider("Windstärke", options=["Windstill", "Leicht", "Mittel", "Stark"])
+    # "Auflandig" zu "Gegenwind" präzisiert
+    windrichtung = st.selectbox("Windrichtung zum Spot", ["Gegenwind (Wind drauf)", "Rückenwind (Ablandig)", "Seitenwind"])
+    # Temperatur auf 0-35 Grad erweitert
+    temp = st.slider("Wassertemperatur (°C)", 0, 35, 15)
 
 # ==========================================
 # 2. PHASE: TAKTIK & BESTAND
@@ -56,9 +68,10 @@ with t1:
         taktik_typ = "Wurf"; wurfweite = st.slider("Wurfweite (m)", 10, 180, 70)
 
 with t2:
-    weissfisch = st.select_slider("Weißfisch-Aufkommen", options=["Niedrig", "Mittel", "Hoch", "Extrem"])
-    aktivitaet = st.select_slider("Fisch-Aktivität", options=["Apathisch", "Vorsichtig", "Normal", "Aggressiv"])
-    # Optimierte Bezeichnung
+    st.markdown("**Bestand (andere Fischarten)**")
+    # Klarstellung: Andere Weißfische
+    weissfisch = st.select_slider("Vorkommen anderer Weißfische (Brassen/Rotaugen/etc.)", options=["Niedrig", "Mittel", "Hoch", "Extrem"])
+    aktivitaet = st.select_slider("Aktivität der Karpfen", options=["Apathisch", "Vorsichtig", "Normal", "Aggressiv"])
     ziel_gewicht = st.number_input("Max. erwartetes Karpfengewicht (kg)", 5, 40, 15)
 
 # ==========================================
@@ -77,43 +90,27 @@ def berechne_pro_logic():
         "begruendung": []
     }
 
-    # --- SPOT-GUIDING ---
-    if jahreszeit == "Frühjahr":
-        setup["spot_tipp"] = "Flachwasser-Zonen (0.5m - 2m) befischen. Auflandiger Wind bringt hier Wärme & Nahrung."
-    elif jahreszeit == "Sommer":
-        if tiefe_max > 6:
-            setup["spot_tipp"] = "Sprungschicht beachten! Fische oft im Mittelwasser oder an Kanten zwischen 3m und 5m."
-        else:
-            setup["spot_tipp"] = "Sauerstoffreiche Bereiche (Einläufe, Windkanten) suchen."
-    elif jahreszeit == "Herbst":
-        setup["spot_tipp"] = "Plateaus und Muschelbänke in 3m - 6m Tiefe. Die Fische fressen für den Winter."
-    elif jahreszeit == "Winter":
-        setup["spot_tipp"] = "Tiefste Bereiche oder geschützte Standplätze suchen. Minimale Bewegung im Wasser."
-
-    # --- HARDWARE-LOGIK ---
-    if any("Kraut" in h for h in hindernisse):
-        setup["rig"] = "Ronnie-Rig / Chod-Rig"
+    # Spot-Tipps basierend auf Wind & Jahreszeit
+    if windrichtung == "Gegenwind (Wind drauf)":
+        setup["begruendung"].append("➔ **Wind:** Gegenwind drückt Nahrung und warmes Oberflächenwasser an dein Ufer. Top Spot!")
     
-    if ziel_gewicht > 20 or any(h in str(hindernisse) for h in ["Muschel", "Totholz", "Kante"]):
-        setup["haken"] = "2 bis 4 (Starkdrahtig)"
-        setup["optimum"] = "Fluorocarbon-Schlagschnur + Snag-Link"
-        setup["begruendung"].append("➔ **Schutz:** Hohes Fischgewicht & Hindernisse erfordern verstärktes Material.")
+    if jahreszeit == "Winter" or temp < 6:
+        setup["haken"] = "6 bis 10 (sehr fein)"
+        setup["begruendung"].append("➔ **Kaltwasser:** Minimale Ködergröße und feinste Haken verwenden.")
 
-    if taktik_typ == "Wurf" and wurfweite > 100:
-        setup["blei"] = 115
-        setup["montage"] = "Helicopter-System"
-        setup["begruendung"].append("➔ **Wurf:** Helicopter verhindert Verwicklungen bei Gewaltwürfen.")
+    if weissfisch in ["Hoch", "Extrem"]:
+        setup["begruendung"].append("➔ **Weißfisch-Druck:** Harte Köder und selektive Montagen wählen.")
 
     return setup
 
 ergebnis = berechne_pro_logic()
 
-# --- FUTTER-LOGIK ---
+# Futter-Logik
 def berechne_futter():
     basis = 0.5 
     if jahreszeit == "Herbst": basis += 2.0
     elif jahreszeit == "Winter": basis = 0.1
-    if aktivitaet == "Aggressiv": basis *= 1.5
+    if temp > 20: basis += 1.0
     if weissfisch == "Extrem": basis += 2.5
     art = "Harte Boilies" if weissfisch in ["Hoch", "Extrem"] else "Mix (Boilies/Partikel)"
     return round(basis, 1), art
@@ -138,15 +135,14 @@ with o2:
     st.subheader("🪝 Vorfach-Material")
     st.success(f"**Optimum:** {ergebnis['optimum']}")
     st.info(f"**Geflecht-Alternative:** {ergebnis['braid_alt']}")
-    st.caption("Die Anti-Tangle-Hülse verhindert Verwicklungen beim Wurf.")
 
 with o3:
-    st.subheader("🥣 Futter & Spot")
+    st.subheader("🥣 Futter am Spot")
     st.metric("Menge ca.", f"{f_menge} kg / Tag")
-    st.write(f"**Spot-Tipp:** {ergebnis['spot_tipp']}")
+    st.write(f"**Empfehlung:** {f_art}")
 
 st.divider()
-st.subheader("💡 Taktische Analyse (Warum?)")
+st.subheader("💡 Taktische Analyse")
 for punkt in ergebnis["begruendung"]:
     st.write(punkt)
 
@@ -156,7 +152,6 @@ for punkt in ergebnis["begruendung"]:
 st.markdown("---")
 st.caption("""
 **Hinweis:** Die hier ausgegebenen Ergebnisse basieren auf fundierten Erfahrungswerten für bewährte Karpfen-Montagen. 
-Jedes Gewässer hat seine eigenen Gesetze. Nutze diese Empfehlung als solide Basis und passe Details wie Haarlänge oder 
-die exakte Position von Tungsten-Weights stets an die örtliche Situation an. Andere Rigs können unter speziellen 
-Bedingungen ebenso zum Erfolg führen.
+Jedes Gewässer hat seine eigenen Gesetze. Nutze diese Empfehlung als solide Basis und passe Details stets an die 
+örtliche Situation an. Auch andere Rigs können unter speziellen Bedingungen gleichermaßen fängig sein.
 """)
