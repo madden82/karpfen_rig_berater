@@ -1,163 +1,185 @@
 import streamlit as st
 
-# ==========================================
-# PROFESSOR CARP - TACTICAL SETUP ENGINE
-# ==========================================
+# =========================
+# Streamlit Setup
+# =========================
+st.set_page_config(
+    page_title="🎣 Profi-Karpfen Rig & Vorfach Berater",
+    layout="centered"
+)
+st.title("🎣 Profi-Karpfen Rig & Vorfach Berater")
+st.caption("Detaillierte Baupläne für Carp Rigs – Profi-tauglich und dynamisch angepasst")
 
-st.set_page_config(page_title="Carp Tactical Engine v2.0", layout="wide")
+# =========================
+# Rig-Datenbank (Beispiel 30 Rigs, erweiterbar)
+# =========================
+RIGS = [
+    {"name":"Hair Rig","categories":["boden","allround"],"max_cast":200,"boat_ok":True,"weed_ok":False},
+    {"name":"Blowback Rig","categories":["boden","allround"],"max_cast":160,"boat_ok":True,"weed_ok":False},
+    {"name":"KD Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False},
+    {"name":"Ronnie Rig","categories":["popup"],"max_cast":130,"boat_ok":True,"weed_ok":True},
+    {"name":"Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Slip D Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Wafter Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Helicopter Rig","categories":["boden","kraut"],"max_cast":140,"boat_ok":True,"weed_ok":True},
+    {"name":"Multi Rig","categories":["boden","wafter"],"max_cast":160,"boat_ok":True,"weed_ok":False},
+    {"name":"Bolt Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":False},
+    {"name":"German Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Hinged Stiff Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":True},
+    {"name":"Line-Aligner Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False},
+    {"name":"Teller Rig","categories":["boden"],"max_cast":140,"boat_ok":True,"weed_ok":False},
+    {"name":"Zig Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":False},
+    {"name":"Surface Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":False},
+    {"name":"Offset Rig","categories":["boden"],"max_cast":150,"boat_ok":True,"weed_ok":False},
+    {"name":"KD Mini Rig","categories":["boden"],"max_cast":120,"boat_ok":True,"weed_ok":False},
+    {"name":"Mini Chod Rig","categories":["popup","kraut"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Pop-Up Chod Rig","categories":["popup","kraut"],"max_cast":130,"boat_ok":True,"weed_ok":True},
+    {"name":"Anti-Weed Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Floating Wafter Rig","categories":["wafter"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Heavy Distance Rig","categories":["boden"],"max_cast":200,"boat_ok":True,"weed_ok":False},
+    {"name":"Fluoro Rig","categories":["boden"],"max_cast":160,"boat_ok":True,"weed_ok":False},
+    {"name":"Stiff Pop Rig","categories":["popup"],"max_cast":140,"boat_ok":True,"weed_ok":True},
+    {"name":"Long Chod Rig","categories":["popup","kraut"],"max_cast":150,"boat_ok":True,"weed_ok":True},
+    {"name":"Leadcore Rig","categories":["boden"],"max_cast":160,"boat_ok":True,"weed_ok":False},
+    {"name":"Safety Rig","categories":["popup"],"max_cast":120,"boat_ok":True,"weed_ok":True},
+    {"name":"Snowman Hair Rig","categories":["wafter"],"max_cast":130,"boat_ok":True,"weed_ok":True},
+    {"name":"Multi-Hair Rig","categories":["boden","allround"],"max_cast":180,"boat_ok":True,"weed_ok":False},
+    {"name":"Distance Pop-Up Rig","categories":["popup"],"max_cast":200,"boat_ok":True,"weed_ok":True},
+]
 
-# Datenbank mit technischen Spezifikationen (Auszug der Top-Architekturen)
-RIG_TECH_DB = {
-    "Ronnie Rig": {
-        "base_material": "Stiff Fluorocarbon (0.45mm) oder Boom-Material",
-        "hook_type": "Curved Shank (Gr. 4)",
-        "mechanics": "360-Grad Rotation für maximale Hakeffizienz bei Pop-Ups",
-        "optimal_height": "2-4cm über Grund",
-        "suitability": {"low_temp": 1.0, "weed": 1.0, "current": 0.3}
-    },
-    "Hinged Stiff Rig": {
-        "base_material": "Mouthtrap (25lb) / Chod Filament",
-        "hook_type": "Chod Hook (Out-turned Eye)",
-        "mechanics": "Zweiteiliges System für maximale Steifigkeit und Reset-Fähigkeit",
-        "optimal_height": "5-8cm",
-        "suitability": {"low_temp": 0.8, "weed": 0.9, "current": 0.2}
-    },
-    "Blowback Rig": {
-        "base_material": "Coated Braid (20-30lb)",
-        "hook_type": "Wide Gape oder Long Shank",
-        "mechanics": "Verschiebbarer Ring am Schenkel verhindert das Ausspucken",
-        "optimal_height": "Bündig am Grund",
-        "suitability": {"low_temp": 0.6, "weed": 0.2, "current": 0.8}
-    }
-    # ... weitere Rigs folgen der Logik unten
-}
+# =========================
+# USER INPUTS
+# =========================
+st.header("🌊 Gewässer & Umwelt")
+gewaesser = st.selectbox("Gewässertyp", ["Teich", "See", "Fluss"],
+                         help="Stehendes oder fließendes Gewässer beeinflusst die Rig-Wahl und Strömungsanforderungen.")
 
-# ==========================================
-# 1. USER INTERFACE: DER SPOT-SCAN
-# ==========================================
-st.title("🎖️ Carp Tactical Intelligence")
-st.write("Präzisions-Analyse basierend auf biologischen und physikalischen Daten.")
+truebung = st.slider("Wassertrübung (0 = klar, 10 = trüb)", 0, 10, 3,
+                     help="Trübes Wasser erfordert auffälligere Köder und Rigs.")
 
-with st.expander("🌍 UMGEBUNG & HYDROLOGIE", expanded=True):
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        jahreszeit = st.selectbox("Saison", ["Frühjahr (steigend)", "Sommer (Peak)", "Herbst (Fressphase)", "Winter (Lethargie)"])
-        temp = st.slider("Wassertemperatur (°C)", 2, 30, 12)
-    with c2:
-        grund = st.selectbox("Bodenstruktur", ["Fels/Stein", "Kies/Sand", "Lehm/Ton", "Schlamm (fest)", "Modder (faulig)", "Kraut (leicht)", "Kraut (Dschungel)"])
-        truebung = st.select_slider("Sichtweite", options=["0-20cm (Null)", "20-100cm (Trüb)", "1-3m (Klar)", ">3m (Gin-Clear)"])
-    with c3:
-        stromung = st.select_slider("Strömungsdruck", options=["Keiner", "Leicht (Kanal)", "Mittel (Fluss)", "Stark (Strom)"])
-        hindernisse = st.multiselect("Gefahrenquellen", ["Muschelbänke", "Totholz", "Scharfe Kanten", "Krautwände"])
-    with c4:
-        tiefe = st.number_input("Tiefe (m)", 0.5, 25.0, 4.0)
-        distanz = st.number_input("Distanz (m)", 5, 200, 80)
+st.header("🎣 Ausbringung")
+ausbringung = st.radio("Methode", ["Wurf", "Boot", "Futterboot"],
+                       help="Wählen Sie, ob Sie den Köder werfen oder vom Boot aus auslegen möchten.")
 
-with st.expander("🐟 BIOLOGISCHE FAKTOREN"):
-    b1, b2, b3 = st.columns(3)
-    with b1:
-        besatz = st.selectbox("Gewässertyp", ["Low Stock (Großfisch)", "Medium Stock", "High Stock (Paylake)"])
-    with b2:
-        aktivitat = st.select_slider("Fraßanzeichen", options=["Null", "Vereinzelt Blasen", "Springende Fische", "Fressrausch"])
-    with b3:
-        beissdruck = st.select_slider("Angeldruck", options=["Niedrig", "Mittel", "Extrem hoch"])
+wurf_vom_boot = None
+if ausbringung == "Boot":
+    wurf_vom_boot = st.radio("Vom Boot aus: auslegen oder Wurf?", ["Auslegen", "Wurf"],
+                             help="Entscheidet, ob die Wurfweite relevant ist.")
 
-# ==========================================
-# 2. EXPERTEN-LOGIK: DIE BERECHNUNG
-# ==========================================
+# Wurfweite nur sichtbar, wenn Wurf oder Boot-Wurf
+wurfweite = None
+if ausbringung == "Wurf" or wurf_vom_boot == "Wurf":
+    wurfweite = st.slider("Wurfweite (m)", 10, 200, 40,
+                          help="Entscheidet, welche Rigs für die Entfernung geeignet sind.")
 
-# A. Bleigewicht-Physik (Berechnung nach Distanz & Strömung)
-def calculate_lead_physics():
-    base = 85
-    if distanz > 100: base = 115
-    if distanz > 140: base = 135
-    
-    # Strömungs-Vektor hinzufügen
-    flow_map = {"Keiner": 0, "Leicht (Kanal)": 20, "Mittel (Fluss)": 60, "Stark (Strom)": 110}
-    final_weight = base + flow_map[stromung]
-    
-    # Form-Empfehlung
-    shape = "Flat Pear" if stromung != "Keiner" else "Distance Casting"
-    if grund == "Schlamm (fest)": shape = "Grippa oder Trilobe"
-    
-    return final_weight, shape
+st.header("🏞️ Hindernisse & Pflanzen")
+kraut = st.checkbox("Kraut vorhanden 🌿")
+muscheln = st.checkbox("Muscheln / Steine vorhanden 🐚")
+aeste = st.checkbox("Äste / Unterholz vorhanden 🌳")
+andere_hindernisse = st.checkbox("Andere Hindernisse vorhanden ⚠️")
 
-# B. Rig & Material-Spezifikation
-def get_detailed_setup():
-    setup = {}
-    
-    # 1. Köder-Präsentation (Zentrale Entscheidung)
-    if "Kraut" in grund or grund == "Modder (faulig)":
-        setup["rig"] = "Chod Rig" if distanz < 100 else "Ronnie Rig (am Heli-System)"
-        setup["bait_type"] = "Pop-Up (high buoyancy)"
-        setup["color"] = "Fluoro White/Pink" if truebung in ["0-20cm (Null)", "20-100cm (Trüb)"] else "Washed Out Pink"
-    elif jahreszeit == "Winter (Lethargie)":
-        setup["rig"] = "Slip D-Rig"
-        setup["bait_type"] = "Kleine Wafter (12-14mm)"
-        setup["color"] = "Gelb (optischer Reiz)"
+st.header("🌊 Strömung")
+stromung = 0.0
+if gewaesser == "Fluss":
+    stromung = st.slider("Fließgeschwindigkeit (m/s)", 0.0, 2.0, 0.5, 0.1,
+                         help="0 = kaum Strömung, 2 = starke Strömung. Beeinflusst Rig-Stabilität.")
+
+st.header("🐟 Fisch & Umwelt")
+jahreszeit = st.selectbox("Jahreszeit", ["Frühling", "Sommer", "Herbst", "Winter"],
+                          help="Saison beeinflusst die Aktivität und Köderwahl der Karpfen.")
+temperatur = st.slider("Wassertemperatur (°C)", 4, 30, 16,
+                       help="Wassertemperatur beeinflusst Beißverhalten und Rig-Auswahl.")
+aggro = st.slider("Aggressivität / Beißverhalten der Karpfen (1 = vorsichtig, 10 = aggressiv)", 1, 10, 5,
+                  help="Je vorsichtiger die Fische, desto unauffälliger sollten Rig und Köder sein.")
+fischgewicht = st.slider("Erwartetes Karpfengewicht (kg)", 5, 35, 15)
+weissfisch = st.slider("Weißfisch-Anteil (%)", 0, 10, 4,
+                       help="Hoher Weißfischanteil erfordert eventuell Köder, die Weißfische weniger anziehen.")
+
+# =========================
+# KÖDER
+# =========================
+def koeder_empfehlung():
+    if temperatur < 10 or jahreszeit == "Winter":
+        return "Pop-Up", 14, "Kaltwasser & Winter – auffällig"
+    if weissfisch >= 6:
+        return "Harter Boilie", 22, "Schützt vor Weißfisch"
+    if aggro <= 4:
+        return "Wafter", 18, "Vorsichtige Fische – unauffällig"
+    if truebung > 6:
+        return "Leuchtender Pop-Up", 16, "Trübes Wasser – auffällig"
+    return "Boilie", 20, "Standardköder – bewährt"
+
+koeder, koeder_mm, koeder_text = koeder_empfehlung()
+
+# =========================
+# SCORE-Funktion
+# =========================
+def score_rig(rig):
+    score = 0
+    name = rig["name"].lower()
+    if "popup" in rig["categories"] and "pop-up" in koeder.lower(): score += 10
+    if kraut and rig["weed_ok"]: score += 8
+    if muscheln or aeste or andere_hindernisse:
+        if name in ["chod rig", "helicopter rig"]: score += 7
+    if stromung > 0.8 and "fluss" in rig["categories"]: score += 7
+    if aggro <= 4 and name in ["chod rig", "wafter rig", "slip d rig"]: score += 6
+    if aggro >= 7 and name in ["hair rig", "blowback rig", "kd rig"]: score += 6
+    if "boden" in rig["categories"] and (kraut or muscheln or aeste or andere_hindernisse): score += 3
+    if "allround" in rig["categories"]: score += 3
+    return score
+
+# =========================
+# FILTER UND TOP-RIG
+# =========================
+def rig_empfehlung():
+    scored = []
+    for rig in RIGS:
+        if wurfweite and wurfweite > rig["max_cast"]:
+            continue
+        if ausbringung != "Wurf" and not rig["boat_ok"]:
+            continue
+        if kraut and not rig["weed_ok"]:
+            continue
+        scored.append((score_rig(rig), rig))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [r for s, r in scored[:2]]  # 1 Rig + optional 2. Rig
+
+# =========================
+# AUSGABE
+# =========================
+if st.button("🎣 Empfehlung anzeigen"):
+    top_rigs = rig_empfehlung()
+    if not top_rigs:
+        st.warning("Keine passenden Rigs gefunden. Bitte Eingaben prüfen.")
     else:
-        setup["rig"] = "Blowback Rig (Kombi-Vorfach)"
-        setup["bait_type"] = "Snowman / Bodenköder"
-        setup["color"] = "Matching (Boilie-Farbe)"
+        st.success("✅ Deine persönliche Empfehlung")
+        st.subheader("🍡 Köder")
+        st.write(f"{koeder} – {koeder_mm} mm")
+        st.caption(koeder_text)
 
-    # 2. Material-Spezifikationen (Die Profi-Details)
-    if stromung in ["Mittel (Fluss)", "Stark (Strom)"]:
-        setup["link_material"] = "Fluorocarbon 30lb (steif)"
-        setup["link_length"] = "12-15cm (kurz gegen Verheddern)"
-    elif grund == "Modder (faulig)":
-        setup["link_material"] = "Uncoated Braid (weich/sinkend)"
-        setup["link_length"] = "25-35cm (lang gegen Versinken)"
-    else:
-        setup["link_material"] = "Coated Braid (25lb) - letzte 2cm abgemantelt"
-        setup["link_length"] = "18-22cm"
+        st.subheader("🪝 Empfohlenes Rig")
+        rig = top_rigs[0]
+        st.write(f"**{rig['name']}** ({', '.join(rig['categories'])})")
+        vorfach = "15–18 cm, steif" if (wurfweite and wurfweite > 120) else "20–25 cm, weich"
+        blei = "Distance Inline 110–130 g" if (wurfweite and wurfweite > 120) else "Inline 90–110 g"
+        haken = "Größe 4 Wide Gape" if fischgewicht >= 25 else "Größe 6 Wide Gape"
+        if aggro <= 4: haken += " – vorsichtig / kleiner"
 
-    # 3. Haken-Spezifikation
-    if "Muschelbänke" in hindernisse or fisch_groesse := 20: # Simulierter Wert
-        setup["hook"] = "Gr. 2 Wide Gape (Heavy Duty)"
-    else:
-        setup["hook"] = "Gr. 4-6 Curved Shank"
-        
-    return setup
+        st.write(f"- Vorfach: {vorfach}")
+        st.write(f"- Haken: {haken}")
+        st.write(f"- Blei: {blei}")
+        st.write(f"- Köder anbringen: {koeder}")
 
-# ==========================================
-# 3. OUTPUT: DAS TACTICAL PROTOCOL
-# ==========================================
-st.divider()
-final_setup = get_detailed_setup()
-lead_w, lead_s = calculate_lead_physics()
-
-st.header("📋 Taktisches Einsatzprotokoll")
-
-col_res1, col_res2, col_res3 = st.columns(3)
-
-with col_res1:
-    st.subheader("🏗️ Endtackle & Montage")
-    st.metric("Bleigewicht", f"{lead_w} g", delta=f"Form: {lead_s}", delta_color="normal")
-    st.write(f"**Leader:** {'Quicksilver Gold (35lb)' if len(hindernisse) > 0 else 'Leadcore / Leadfree 45lb'}")
-    st.write(f"**Bleisystem:** {'Helicopter (Naked)' if 'Schlamm' in grund else 'Safety Clip (Heavy Duty)'}")
-
-with col_res2:
-    st.subheader("🪝 Rig-Spezifikation")
-    st.success(f"**Typ:** {final_setup['rig']}")
-    st.write(f"**Material:** {final_setup['link_material']}")
-    st.write(f"**Länge:** {final_setup['link_length']}")
-    st.write(f"**Haken:** {final_setup['hook']}")
-    st.info(f"**Knoten:** {'D-Loop / Krimpen' if 'Fluoro' in final_setup['link_material'] else 'No-Knot + Shrink Tube'}")
-
-with col_res3:
-    st.subheader("🍱 Köder-Konfiguration")
-    st.warning(f"**Präsentation:** {final_setup['bait_type']}")
-    st.write(f"**Farbschema:** {final_setup['color']}")
-    st.write(f"**Attraktion:** {'Alkohol-basiert (Flavor)' if temp < 8 else 'Öl-basiert (Lachs/Fisch)'}")
-
-# Strategie-Text
-st.divider()
-st.subheader("🧠 Taktische Begründung")
-st.write(f"""
-Basierend auf der **{jahreszeit}** und dem Untergrund **({grund})** wurde ein Setup gewählt, das die **{final_setup['rig']}**-Mechanik nutzt. 
-Da die Trübung bei **{truebung}** liegt, setzen wir auf **{final_setup['color']}**, um den Fisch visuell zum Spot zu führen. 
-Das Bleigewicht von **{lead_w}g** stellt sicher, dass der Selbsthakeffekt auch bei **{stromung}** Strömung und einer Distanz von **{distanz}m** unmittelbar eintritt.
-""")
-
-if len(hindernisse) > 0:
-    st.error(f"⚠️ **GEFAHRENHINWEIS:** Aufgrund von {', '.join(hindernisse)} ist 
+        # Optional zweites Rig
+        if len(top_rigs) > 1:
+            if st.checkbox("Optional: zweites Rig anzeigen"):
+                rig2 = top_rigs[1]
+                st.write(f"**{rig2['name']}** ({', '.join(rig2['categories'])})")
+                vorfach2 = "15–18 cm, steif" if (wurfweite and wurfweite > 120) else "20–25 cm, weich"
+                blei2 = "Distance Inline 110–130 g" if (wurfweite and wurfweite > 120) else "Inline 90–110 g"
+                haken2 = "Größe 4 Wide Gape" if fischgewicht >= 25 else "Größe 6 Wide Gape"
+                if aggro <= 4: haken2 += " – vorsichtig / kleiner"
+                st.write(f"- Vorfach: {vorfach2}")
+                st.write(f"- Haken: {haken2}")
+                st.write(f"- Blei: {blei2}")
+                st.write(f"- Köder anbringen: {koeder}")
