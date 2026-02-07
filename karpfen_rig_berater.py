@@ -6,29 +6,35 @@ import streamlit as st
 st.set_page_config(page_title="Carp Tactical Commander Pro", layout="wide")
 
 st.title("🎖️ Carp Tactical Commander Pro")
-st.caption("Präzisions-Einsatzplanung | Version 2.1 (Refined Hook & Bait Logic)")
+st.caption("Präzisions-Einsatzplanung | Version 2.2 (Dynamic Environment Logic)")
 
 # ==========================================
-# 1. PHASE: GEWÄSSER-PROFIL
+# 1. PHASE: GEWÄSSER-PROFIL (Statisch & Dynamisch)
 # ==========================================
 st.header("📍 Schritt 1: Gewässer- & Umweltprofil")
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    # Gewässer unabhängig von der Tiefe
     gewaesser_typ = st.selectbox("Gewässertyp", 
                                 ["See / Weiher", "Baggersee", "Kanal", "Fluss", "Strom", "Stausee"])
     tiefe = st.number_input("Exakte Tiefe am Spot (m)", 0.5, 40.0, 4.0)
-    stromung = st.select_slider("Strömungsdruck", options=["Keiner", "Leicht", "Mittel", "Stark"])
+    
+    # Strömung nur bei Fließgewässern einblenden
+    stromung = "Keiner"
+    if gewaesser_typ in ["Kanal", "Fluss", "Strom"]:
+        stromung = st.select_slider("Strömungsdruck", options=["Keiner", "Leicht", "Mittel", "Stark"])
 
 with c2:
     boden_struktur = st.selectbox("Bodenbeschaffenheit", 
-                                 ["Sand/Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Modder (faulig/stinkend)", "Kraut/Algen"])
+                                 ["Sand/Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Modder (faulig)", "Kraut/Algen"])
     hindernisse = st.multiselect("Hindernisse am Spot", ["Muschelbänke", "Totholz/Äste", "Scharfe Kanten", "Versunkene Bauten"])
 
 with c3:
-    wasser_klarheit = st.select_slider("Sichttiefe / Klarheit", options=["Trüb (0-30cm)", "Medium (1m)", "Klar (3m+)", "Gin-Clear"])
-    ph_algen = st.selectbox("Zustand/Algen", ["Normal", "Starke Algenblüte", "Hoher Sauerstoff (Wind/Zufluss)", "Sauerstoffarm (Hitze)"])
+    st.markdown("**Atmosphäre & Wasser**")
+    wasser_klarheit = st.select_slider("Sichttiefe / Klarheit", options=["Trüb", "Medium", "Klar", "Gin-Clear"])
+    
+    windstärke = st.select_slider("Windstärke", options=["Windstill", "Leichte Brise", "Mäßiger Wind", "Starker Wind / Sturm"])
+    windrichtung = st.selectbox("Windrichtung (relativ zum Spot)", ["Auflandig (Wind ins Gesicht)", "Ablandig (Rückenwind)", "Seitenwind"])
 
 # ==========================================
 # 2. PHASE: TAKTIK & AUSBRINGUNG
@@ -43,7 +49,6 @@ with t1:
     taktik_typ = "Ablegen"
     wurfweite = 0
     
-    # Logik-Kette: Wurfweite erscheint NUR bei Wurf-Szenarien
     if ausbringungs_methode == "Boot":
         boot_taktik = st.radio("Taktik vom Boot:", ["Vom Boot ablegen", "Vom Boot werfen"], horizontal=True)
         if boot_taktik == "Vom Boot werfen":
@@ -66,43 +71,42 @@ def get_pro_setup():
     res = {
         "rig_name": "Standard Hair Rig",
         "material": "Coated Braid (25lb)",
-        "hook_range": "4 - 6", # Default Range
-        "lead_weight": 100,
+        "hook_range": "4 - 6",
+        "lead_weight": 90,
         "lead_system": "Safety Clip",
         "bait_style": "Standard (Unauffällig)",
-        "length": 18
+        "length": 18,
+        "taktik_hinweis": ""
     }
 
-    # A. Köder- & Rig-Logik nach Wasserqualität
-    if wasser_klarheit in ["Klar (3m+)", "Gin-Clear"]:
-        res["bait_style"] = "Dezente Präsentation (Unauffällige Farben)"
-        res["rig_name"] = "D-Rig oder Slip-D"
-        res["material"] = "Fluorocarbon (0.40mm)"
-    elif wasser_klarheit == "Trüb (0-30cm)":
-        res["bait_style"] = "Optischer Reiz (Fluoro-Farben / Kontrast)"
-    
-    if boden_struktur == "Kraut/Algen":
-        res["rig_name"] = "Ronnie- oder Chod-Rig"
+    # A. Wind- & Temperatur-Logik (Umwälzung)
+    if windstärke in ["Mäßiger Wind", "Starker Wind / Sturm"]:
+        if windrichtung == "Auflandig (Wind ins Gesicht)":
+            res["taktik_hinweis"] = "Top-Bedingungen! Sauerstoff und Nahrung werden an dein Ufer gedrückt."
+            res["bait_style"] = "Hohe Attraktivität (viele wasserlösliche Stoffe)"
+        res["lead_weight"] += 30 # Mehr Gewicht gegen Schnurbogen durch Wind
+        
+    # B. Strömung & Wasserqualität
+    if stromung in ["Mittel", "Stark"]:
+        res["lead_weight"] = 180 if stromung == "Mittel" else 250
+        res["length"] = 12 # Kurzes Vorfach gegen Verwicklungen im Strom
+        res["material"] = "Fluorocarbon oder steifes Coated Braid"
+        
+    if wasser_klarheit in ["Klar", "Gin-Clear"]:
+        res["material"] = "Fluorocarbon (0.40mm+)"
+        res["rig_name"] = "D-Rig / Slip-D"
 
-    # B. Hakengrößen-Range (Dynamisch nach Fisch & Hindernis)
-    if ziel_gewicht < 12:
-        res["hook_range"] = "6 - 8"
-    elif 12 <= ziel_gewicht <= 20:
-        res["hook_range"] = "4 - 6"
-    else: # Großfisch
+    # C. Boden & Rig
+    if boden_struktur in ["Kraut", "Modder (faulig)"]:
+        res["rig_name"] = "Ronnie-Rig oder Chod-Rig"
+        res["length"] = 6 if "Chod" in res["rig_name"] else 20
+
+    # D. Haken-Range
+    if ziel_gewicht > 20 or len(hindernisse) > 0:
         res["hook_range"] = "2 - 4"
-        
-    if len(hindernisse) > 0 or stromung == "Stark":
-        res["hook_range"] = "2 - 4 (Dickdrahtig)"
+    elif fisch_aktivitaet == "Vorsichtig":
+        res["hook_range"] = "6 - 8"
 
-    # C. Blei-Physik
-    if taktik_typ == "Wurf":
-        res["lead_weight"] = 120 if wurfweite > 90 else 90
-        if wurfweite > 110: res["lead_system"] = "Helicopter (Anti-Tangle)"
-    if stromung == "Stark":
-        res["lead_weight"] = 200
-        res["lead_system"] = "Festblei / Inliner (Grippa)"
-        
     return res
 
 setup = get_pro_setup()
@@ -116,26 +120,29 @@ st.header("📋 Taktisches Einsatz-Protokoll")
 col_out1, col_out2, col_out3 = st.columns(3)
 
 with col_out1:
-    st.subheader("📦 Hardware")
+    st.subheader("📦 Hardware & Montage")
     st.metric("Bleigewicht", f"{setup['lead_weight']} g")
     st.write(f"**Bleisystem:** {setup['lead_system']}")
-    if taktik_typ == "Wurf" and wurfweite > 100:
-        st.warning("⚠️ Helicopter-Montage für Wurfstabilität!")
+    if windstärke == "Starker Wind / Sturm":
+        st.warning("⚓ Starker Winddruck: Schnur gut absenken (Backleads)!")
 
 with col_out2:
-    st.subheader("🪝 Rig-Konfiguration")
-    st.success(f"**Empfohlen:** {setup['rig_name']}")
-    st.write(f"**Material:** {setup['material']}")
-    # Haken-Range statt Einzelwert
-    st.info(f"**Haken-Range:** Größe {setup['hook_range']}")
-    st.write(f"**Vorfachlänge:** {setup['length']} cm")
+    st.subheader("🪝 Rig-Details")
+    st.success(f"**Rig:** {setup['rig_name']}")
+    st.write(f"**Haken-Range:** Größe {setup['hook_range']}")
+    st.write(f"**Vorfach:** {setup['material']} ({setup['length']} cm)")
 
 with col_out3:
-    st.subheader("🍬 Präsentation")
-    st.write(f"**Optik:** {setup['bait_style']}")
-    if ph_algen == "Sauerstoffarm (Hitze)":
-        st.error("Gefahr: Fische fressen kaum. Nutze hochattraktive Einzeltäter-Köder!")
+    st.subheader("💡 Strategie-Hinweise")
+    if setup["taktik_hinweis"]:
+        st.info(setup["taktik_hinweis"])
+    st.write(f"**Köder-Stil:** {setup['bait_style']}")
+    if jahreszeit == "Frühjahr" and windrichtung == "Auflandig (Wind ins Gesicht)":
+        st.write("🔥 *Bonus:* Der warme Wind im Frühjahr kann die Fische extrem schnell in dein Ufer locken.")
 
-# Dynamischer Bauer-Tipp
-st.info(f"**Profi-Tipp:** Wähle die Hakengröße innerhalb der Range {setup['hook_range']} passend zur Ködergröße. "
-        f"Bei einem 20mm Boilie eher zur Gr. 4, bei einem 24mm oder doppelten Köder zur Gr. 2 greifen.")
+# Profi-Info
+st.divider()
+with st.expander("🛠️ Zusätzliche technische Details"):
+    st.write(f"- **Vorfach-Steifigkeit:** {'Hoch (Stiff)' if stromung != 'Keiner' or wasser_klarheit == 'Gin-Clear' else 'Medium'}")
+    st.write(f"- **Hakenform:** {'Curve Shank' if 'Ronnie' in setup['rig_name'] else 'Wide Gape'}")
+    st.write(f"- **Sicherheit:** {'Inliner' if stromung == 'Stark' else 'Safety Clip'} ermöglicht sicheres Auslösen des Bleis.")
