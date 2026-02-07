@@ -27,37 +27,34 @@ c1, c2, c3 = st.columns(3)
 with c1:
     gewaesser_typ = st.selectbox("Gewässertyp wählen", 
                                 ["See / Weiher", "Baggersee", "Kanal", "Fluss", "Strom", "Stausee"],
-                                help="Die Wahl des Gewässers beeinflusst die nötige Robustheit der Montage und die Bleiform (z.B. Grippa für Strömung).")
+                                help="Fließgewässer erfordern stabilere Montagen und schwerere Bleie als stehende Gewässer.")
     jahreszeit = st.selectbox("Aktuelle Jahreszeit", ["Frühjahr", "Sommer", "Herbst", "Winter"],
-                               help="Bestimmt den Stoffwechsel der Fische und die Tiefe, in der sie sich bevorzugt aufhalten.")
-    tiefe_max = st.number_input("Maximale Tiefe des Gewässers (m)", 1.0, 50.0, 8.0, step=0.1,
-                                help="Wichtig, um das Gewässerprofil zu verstehen (z.B. Flachsee vs. tiefer Baggersee).")
-    tiefe_spot = st.number_input("Tiefe an deinem Angelplatz (m)", 0.5, 40.0, 3.0, step=0.1,
-                                 help="Die exakte Tiefe am Hakenköder bestimmt die Rig-Länge und Präsentationsart.")
+                               help="Bestimmt die Tiefe und die Stoffwechselrate (Fresslust) der Karpfen.")
+    tiefe_max = st.number_input("Maximale Tiefe des Gewässers (m)", 1.0, 50.0, 8.0, step=0.1)
+    tiefe_spot = st.number_input("Tiefe an deinem Angelplatz (m)", 0.5, 40.0, 3.0, step=0.1)
 
 with c2:
     boden_struktur = st.selectbox("Bodenbeschaffenheit wählen", 
                                  ["Sand / Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Moder (faulig)"],
-                                 help="Auf hartem Boden liegen Rigs flach auf, in weichem Schlamm oder fauligem Moder können sie versinken und Gerüche annehmen.")
+                                 help="Auf hartem Boden liegen Rigs sauber auf. In Moder/Schlamm können Köder versinken.")
     hindernisse = st.multiselect("Hindernisse / Gefahren am Platz", [
         "Muschelbänke", "Totholz", "Kraut (leicht)", "Kraut-Dschungel", 
         "Fadenalgen", "Scharfe Kanten", "Krebse", "Schiffsverkehr"
-    ], placeholder="Wählen...", help="Hindernisse erfordern Schlagschnüre, dickdrahtige Haken oder spezielle Abwurfsysteme für das Blei.")
+    ], placeholder="Wählen...", help="Muscheln/Kanten erfordern Schlagschnüre. Kraut erfordert Pop-Up Rigs.")
 
 with c3:
     st.markdown("**Wind & Wasser**")
     wasser_klarheit = st.select_slider("Sichttiefe / Klarheit", options=["Trüb", "Mittel", "Klar", "Glasklar"],
-                                      help="In klarem Wasser ist Tarnung (Fluorocarbon) entscheidend, in trübem Wasser eher optische Reize.")
+                                      help="Bestimmt, wie wichtig die Tarnung des Vorfachs (z.B. Fluorocarbon) ist.")
     windstärke = st.select_slider("Windstärke", options=["Windstill", "Leicht", "Mittel", "Stark"],
-                                 help="Wind erzeugt Strömung und mischt Sauerstoff ins Wasser. Starker Wind erfordert schwerere Bleie.")
+                                 help="Wind bringt Sauerstoff und Strömung. Erfordert oft schwerere Bleie gegen den Schnurbogen.")
     
     windrichtung = "Windstill"
     if windstärke != "Windstill":
         windrichtung = st.selectbox("Windrichtung zum Spot", ["Gegenwind", "Rückenwind", "Seitenwind"],
-                                    help="Gegenwind drückt warmes Oberflächenwasser und Nahrung direkt an dein Ufer.")
+                                    help="Gegenwind (auflandiger Wind) drückt natürliches Futter direkt in dein Ufer.")
         
-    temp = st.slider("Wassertemperatur (°C)", 0, 35, 15,
-                     help="Unter 10°C fahren Karpfen ihren Stoffwechsel drastisch herunter (weniger Futter nötig).")
+    temp = st.slider("Wassertemperatur (°C)", 0, 35, 15)
 
 # ==========================================
 # 2. PHASE: TAKTIK & BESTAND
@@ -69,8 +66,7 @@ wurfweite = 0
 taktik_typ = "Ablegen"
 
 with t1:
-    ausbringung = st.radio("Ausbringungsmethode", ["Wurf vom Ufer", "Futterboot", "Boot"], horizontal=True,
-                           help="Beim Wurf muss das Rig 'Anti-Tangle' (verwicklungsfrei) sein. Beim Ablegen kann es feiner sein.")
+    ausbringung = st.radio("Ausbringungsmethode", ["Wurf vom Ufer", "Futterboot", "Boot"], horizontal=True)
     if ausbringung == "Boot":
         boot_taktik = st.radio("Boot-Taktik:", ["Ablegen", "Werfen"], horizontal=True)
         if boot_taktik == "Werfen":
@@ -79,13 +75,12 @@ with t1:
         taktik_typ = "Wurf"; wurfweite = st.slider("Wurfweite (m)", 10, 180, 70)
 
 with t2:
-    st.markdown("**Bestand (andere Fischarten)**")
+    st.markdown("**Bestand & Aktivität**")
     weissfisch = st.select_slider("Vorkommen anderer Weißfische", options=["Niedrig", "Mittel", "Hoch", "Extrem"],
-                                  help="Brassen oder Rotaugen können den Köder attackieren. Bei extremem Vorkommen sind harte, große Köder nötig.")
+                                  help="Brassen/Rotaugen. Bei hohem Aufkommen sind harte, große Köder zur Selektion nötig.")
     aktivitaet = st.select_slider("Aktivität der Karpfen", options=["Apathisch", "Vorsichtig", "Normal", "Aggressiv"],
-                                  help="Apathisch: Fische bewegen sich kaum (Winter). Vorsichtig: Fische fressen extrem misstrauisch. Aggressiv: Fische im Fressrausch.")
-    ziel_gewicht = st.number_input("Max. erwartetes Karpfengewicht (kg)", 5, 40, 15,
-                                  help="Bestimmt die Stärke des Vorfachmaterials und die Hakengröße.")
+                                  help="Apathisch: Winterstarre. Vorsichtig: Fische prüfen den Köder lange. Aggressiv: Fressrausch.")
+    ziel_gewicht = st.number_input("Max. erwartetes Karpfengewicht (kg)", 5, 40, 15)
 
 # ==========================================
 # 3. PHASE: EXPERTEN-ENGINE
@@ -102,20 +97,25 @@ def berechne_pro_logic():
         "begruendung": []
     }
 
-    if windrichtung == "Gegenwind":
-        setup["begruendung"].append("➔ **Wind:** Gegenwind drückt Nahrung und warmes Oberflächenwasser an dein Ufer. Top Spot!")
-    
-    if jahreszeit == "Winter" or temp < 6:
-        setup["haken"] = "6 bis 10 (sehr fein)"
-        setup["begruendung"].append("➔ **Kaltwasser:** Minimale Ködergröße und feinste Haken verwenden.")
+    # --- BASIS-ANALYSE (Immer vorhanden) ---
+    setup["begruendung"].append(f"➔ **Basis:** Das {setup['rig']} wurde gewählt, da es die zuverlässigste Hakeigenschaft für {boden_struktur} bietet.")
 
-    if weissfisch in ["Hoch", "Extrem"]:
-        setup["begruendung"].append("➔ **Weißfisch-Druck:** Harte Köder und selektive Montagen wählen.")
-        
+    # --- SPEZIAL-LOGIK ---
+    if windrichtung == "Gegenwind":
+        setup["begruendung"].append("➔ **Spot-Wahl:** Gegenwind drückt Nahrung und warmes Wasser an dein Ufer. Hohe Beißchance!")
+    
+    if jahreszeit == "Winter" or temp < 7:
+        setup["haken"] = "6 bis 10 (sehr fein)"
+        setup["begruendung"].append("➔ **Kaltwasser:** Aufgrund niedriger Aktivität sind kleine Köder und feinste Haken nötig.")
+
     if any(h in str(hindernisse) for h in ["Muschel", "Totholz", "Kante"]):
         setup["haken"] = "2 bis 4 (Starkdrahtig)"
         setup["optimum"] = "Fluorocarbon-Schlagschnur + Snag-Link"
-        setup["begruendung"].append("➔ **Schutz:** Hindernisse erfordern verstärktes Material.")
+        setup["begruendung"].append("➔ **Sicherheit:** Hindernisse erfordern abriebfestes Material und kräftige Haken.")
+    
+    if "Kraut" in str(hindernisse) or boden_struktur == "Schlamm (weich)":
+        setup["rig"] = "Ronnie-Rig / Chod-Rig"
+        setup["begruendung"].append("➔ **Präsentation:** Pop-Up Montage gewählt, damit der Köder nicht einsinkt oder im Kraut verschwindet.")
 
     return setup
 
@@ -158,6 +158,7 @@ with o3:
 
 st.divider()
 st.subheader("💡 Taktische Analyse")
+# Hier wird sichergestellt, dass immer etwas ausgegeben wird
 for punkt in ergebnis["begruendung"]:
     st.write(punkt)
 
@@ -166,7 +167,6 @@ for punkt in ergebnis["begruendung"]:
 # ==========================================
 st.markdown("---")
 st.caption("""
-**Hinweis:** Die hier ausgegebenen Ergebnisse basieren auf fundierten Erfahrungswerten für bewährte Karpfen-Montagen. 
-Jedes Gewässer hat seine eigenen Gesetze. Nutze diese Empfehlung als solide Basis und passe Details stets an die 
-örtliche Situation an. Auch andere Rigs können unter speziellen Bedingungen gleichermaßen fängig sein.
+**Hinweis:** Diese Ergebnisse basieren auf Standard-Empfehlungen. Jedes Gewässer ist individuell. 
+Nutze dies als Basis und passe Details vor Ort an.
 """)
