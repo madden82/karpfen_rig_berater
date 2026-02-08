@@ -3,7 +3,7 @@ import streamlit as st
 # ============================
 # 1. Setup & Design
 # ============================
-st.set_page_config(page_title="Karpfen-Hilfe v2.3", layout="wide")
+st.set_page_config(page_title="Karpfen-Hilfe v2.4", layout="wide")
 
 st.markdown("""
 <style>
@@ -30,7 +30,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.3</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.4</div>', unsafe_allow_html=True)
 
 # ============================
 # 2. Eingaben
@@ -91,6 +91,10 @@ with c2:
         "Weißfisch-Dichte", ["Niedrig", "Mittel", "Hoch", "Extrem"],
         help="Hoch bedeutet mehr Störfische – beeinflusst Ködergröße und Härte."
     )
+    karpfen_max = st.number_input(
+        "Erwartete Maximalgröße Karpfen (kg)", 1.0, 30.0, 10.0, step=0.5,
+        help="Maximalgewicht Karpfen am Spot – wichtig für Haken-, Köder- und Vorfachwahl."
+    )
 
 with c3:
     st.markdown("### 🏗️ Spot & Hindernisse")
@@ -102,7 +106,7 @@ with c3:
     hindernisse = st.multiselect(
         "Hindernisse",
         ["Muschelbänke", "Totholz", "Kraut", "Krebse"],
-        default=[]  # leer = kein englischer Platzhalter
+        default=[]
     )
     angeldruck = st.selectbox(
         "Angeldruck", ["-- Bitte wählen --", "Gering", "Mittel", "Hoch"],
@@ -110,16 +114,7 @@ with c3:
     )
 
 # ============================
-# 3. Hilfsfunktionen
-# ============================
-def kleinerer_haken(gr):
-    return min(10, gr + 1)
-
-def groesserer_haken(gr):
-    return max(2, gr - 1)
-
-# ============================
-# 4. Logik-Engine
+# 3. Logik-Engine
 # ============================
 def berechne_hilfe():
     t = {
@@ -193,6 +188,17 @@ def berechne_hilfe():
         t["koeder_gr"] = 20
         t["koeder_h"] = "Normal"
         t["begruendungen"].append("☀️ Standardbedingungen → Boilie Köder.")
+
+    # Haken-Größe nach erwarteter Karpfengröße
+    if karpfen_max <= 5:
+        t["h_gr"] = 4
+    elif karpfen_max <= 12:
+        t["h_gr"] = 6
+    elif karpfen_max <= 20:
+        t["h_gr"] = 8
+    else:
+        t["h_gr"] = 10
+    t["begruendungen"].append(f"🎯 Haken-Größe angepasst an Maximalgewicht {karpfen_max} kg → Gr. {t['h_gr']}")
 
     # Futterstrategie
     if temp<7:
