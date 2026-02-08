@@ -222,3 +222,157 @@ st.divider()
 st.info("💡 **Orientierungshilfe:** Die hier getroffenen Empfehlungen dienen als Orientierung basierend auf den eingegebenen Daten und Erfahrungswerten. Da jedes Gewässer seine eigenen, speziellen Bedingungen hat, solltest du dein Rig, Vorfach, Leader und Blei immer an die tatsächlichen Gegebenheiten vor Ort anpassen.")
 
 st.caption("Karpfen-Rig-Konfigurator v6.0 | Modular & High-Detail")
+# ==========================================
+# 4. ERWEITERTE HAKEN-ENGINE (MODULAR)
+# ==========================================
+
+def berechne_haken_logik(s, boden, hindernisse, aktivitaet, praesentation):
+    h = {
+        "typ": "Wide Gape",
+        "begruendungen": []
+    }
+
+    # 1. Logik: Wide Gape (Der Allrounder)
+    if praesentation in ["Bodenköder", "Snowman", "Wafter"] and "Keine Hindernisse" in hindernisse:
+        h["typ"] = "Wide Gape"
+        h["begruendungen"].append("➔ **Haken:** Wide Gape gewählt. Großer Bogen & stabiler Halt – verzeiht Rig-Fehler und ist ideal für Bodenköder auf fast allen Böden.")
+
+    # 2. Logik: Curve Shank (Aggressiv bei Vorsicht)
+    if aktivitaet == "Vorsichtig" and not any(hi in ["Totholz", "Scharfe Kanten"] for hi in hindernisse):
+        h["typ"] = "Curve Shank"
+        h["begruendungen"].append("➔ **Haken:** Curve Shank gewählt. Aggressives Eindrehen bei vorsichtigen Fischen. **Achtung:** Erhöhte Hebelwirkung, daher nur in hindernisfreiem Wasser!")
+
+    # 3. Logik: Long Shank (Präzision auf hartem Boden)
+    if boden in ["Sand / Kies (hart)", "Lehm (fest)"] and aktivitaet == "Vorsichtig":
+        h["typ"] = "Long Shank"
+        h["begruendungen"].append("➔ **Haken:** Long Shank gewählt. Ideal für harte Böden und vorsichtige Fische. Bietet extrem schnelle Penetration im Fischmaul.")
+
+    # 4. Logik: Short Shank / Stiff Rigger (Die Brechstange)
+    if any(hi in ["Kraut", "Muschelbänke", "Totholz"] for hi in hindernisse):
+        h["typ"] = "Short Shank / Stiff Rigger"
+        h["begruendungen"].append("➔ **Haken:** Short Shank gewählt. Sehr kompakt und stabil für hindernisreiche Gewässer. Minimale Hebelwirkung verhindert Aufbiegen/Ausschlitzen.")
+
+    # 5. Logik: Chod Hook (Spezialist für Extremfälle)
+    if s["rig_typ"] == "Helikopter-System" and boden in ["Schlamm (weich)", "Moder (faulig)"]:
+        h["typ"] = "Chod Hook"
+        h["begruendungen"].append("➔ **Haken:** Chod Hook gewählt. Speziell für Pop-Ups im Tiefschlamm oder Kraut. Dreht extrem schnell an steifen Vorfächern.")
+
+    # 6. Logik: Krank (Der Hybrid-Vorteil)
+    if boden == "Weiß ich nicht" or (praesentation == "Snowman" and aktivitaet == "Normal"):
+        h["typ"] = "Krank (Wide Curve Hybrid)"
+        h["begruendungen"].append("➔ **Haken:** Krank gewählt. Vereint die Vorteile von Wide Gape und Curve Shank. Hohe Hakquote bei geringerem Ausschlitzrisiko.")
+
+    return h
+
+# Integration in den Hauptablauf:
+haken_ergebnis = berechne_haken_logik(res, boden_struktur, hindernisse, aktivitaet, res["koeder_praesentation"])
+res["haken_typ"] = haken_ergebnis["typ"]
+res["begruendungen"].extend(haken_ergebnis["begruendungen"])
+# ==========================================
+# 5. HAKEN-EIGENSCHAFTEN (TEIL 5)
+# ==========================================
+
+def berechne_haken_details(h_typ, boden, hindernisse, gewicht, aktivitaet):
+    d = {
+        "spitze": "Straight Point (Gerade)",
+        "oehr": "Gerade (Universell)",
+        "draht": "Standard",
+        "detail_begruendung": []
+    }
+
+    # 1. Logik: Hakenspitze
+    if any(hi in ["Kraut", "Muschelbänke", "Totholz"] for hi in hindernisse) or boden == "Weiß ich nicht":
+        d["spitze"] = "Beaked Point (Nach innen gebogen)"
+        d["detail_begruendung"].append("📍 **Spitze:** Ein Beaked Point schützt die Spitze vor Beschädigungen am Boden und hält im Drill unter Belastung (Hindernisse) sicherer.")
+    elif boden in ["Sand / Kies (hart)", "Lehm (fest)"]:
+        d["spitze"] = "Straight Point (Gerade)"
+        d["detail_begruendung"].append("📍 **Spitze:** Auf hartem Boden bietet eine gerade Spitze (Straight Point) die schnellste Penetration im Fischmaul.")
+
+    # 2. Logik: Öhr-Winkel
+    if h_typ in ["Curve Shank", "Long Shank", "Krank"]:
+        d["oehr"] = "Nach innen gebogen (In-turned Eye)"
+        d["detail_begruendung"].append("👁️ **Öhr:** Das nach innen gebogene Öhr unterstützt die aggressive Drehbewegung dieser Hakenformen.")
+    elif h_typ in ["Chod Hook", "Short Shank / Stiff Rigger"]:
+        d["oehr"] = "Nach außen gebogen (Out-turned Eye)"
+        d["detail_begruendung"].append("👁️ **Öhr:** Das nach außen gebogene Öhr ist ideal für steife Monovorfächer (D-Rig/Chod), damit das Material nicht abknickt.")
+
+    # 3. Logik: Drahtstärke
+    if gewicht > 18 or any(hi in ["Totholz", "Muschelbänke"] for hi in hindernisse):
+        d["draht"] = "Dickdrahtig (X-Strong / Heavy Wire)"
+        d["detail_begruendung"].append("💪 **Draht:** Aufgrund des Fischgewichts oder der Hindernisse ist ein dickdrahtiger Haken nötig, um ein Aufbiegen zu verhindern.")
+    elif aktivitaet == "Vorsichtig" and gewicht < 12:
+        d["draht"] = "Dünndrahtig (Fine Wire)"
+        d["detail_begruendung"].append("💪 **Draht:** Bei vorsichtigen Fischen im Freiwasser dringt ein dünndrahtiger Haken leichter ein und ist unauffälliger.")
+
+    return d
+
+# Integration in den Ablauf:
+h_details = berechne_haken_details(res["haken_typ"], boden_struktur, hindernisse, ziel_gewicht, aktivitaet)
+res["h_spitze"] = h_details["spitze"]
+res["h_oehr"] = h_details["oehr"]
+res["h_draht"] = h_details["draht"]
+res["begruendungen"].extend(h_details["detail_begruendung"])
+# ==========================================
+# 6. FINALE HIGH-DETAIL AUSGABE (UI)
+# ==========================================
+st.divider()
+st.header("🏁 Deine Experten-Analyse & Rig-Konfiguration")
+
+# Worst-Case Warnung prominent platzieren
+if res.get("unsicher"):
+    st.markdown("""
+        <div class="worst-case-warnung">
+            ⚠️ <strong>Sicherheits-Modus aktiv:</strong> Da einige Parameter auf 'Weiß ich nicht' stehen, 
+            wurde ein Setup für den schwierigsten Fall (Worst Case) gewählt, um Fischverlust zu vermeiden.
+        </div>
+    """, unsafe_allow_html=True)
+
+# Layout aufteilen: Links Hardware, Rechts Begründungen & Spot
+col_links, col_rechts = st.columns([1.2, 1.8])
+
+with col_links:
+    st.subheader("📦 Hardware-Spezifikation")
+    
+    # Blei-Sektion
+    with st.expander("⚓ Bleisystem & Montage", expanded=True):
+        st.success(f"**Montage:** {res['blei_typ']}")
+        st.info(f"**Blei:** {res['blei_gewicht']}g ({res['blei_form']})")
+        st.write(f"**Leader:** {res['leader']}")
+
+    # Vorfach-Sektion
+    with st.expander("🪝 Vorfach & Rig-Typ", expanded=True):
+        st.warning(f"**Material:** {res['vorfach_material']}")
+        st.write(f"**Länge:** {res['vorfach_laenge']}")
+        st.write(f"**Rig:** {res['rig_typ']}")
+        st.write(f"**Präsentation:** {res['koeder_praesentation']}")
+
+    # Haken-Sektion (Neu mit allen Zusatzparametern)
+    with st.expander("⚙️ Haken-Details", expanded=True):
+        st.error(f"**Modell:** {res['haken_typ']}")
+        st.write(f"📍 **Spitze:** {res['h_spitze']}")
+        st.write(f"👁️ **Öhr:** {res['h_oehr']}")
+        st.write(f"💪 **Draht:** {res['h_draht']}")
+
+    # Futter-Sektion
+    with st.expander("🥣 Futter-Strategie", expanded=True):
+        st.write(f"**Menge:** {res['futter_menge']}")
+        st.write(f"**Köder:** {res['futter_art']}")
+
+with col_rechts:
+    st.subheader("🧐 Taktische Begründungen (Das 'Warum')")
+    # Alle gesammelten Begründungen aus den Modulen anzeigen
+    for begrue in res['begruendungen']:
+        st.markdown(f'<div class="taktik-detail">{begrue}</div>', unsafe_allow_html=True)
+    
+    st.subheader("🗺️ Lokalisierung: Spot-Empfehlung")
+    st.markdown(f'<div class="spot-empfehlung">📍 {res["spot_analyse"]}</div>', unsafe_allow_html=True)
+
+# Finaler Haftungsausschluss
+st.divider()
+st.info("""
+    💡 **Orientierungshilfe:** Die hier getroffenen Empfehlungen basieren auf den eingegebenen Daten und 
+    dienen als taktische Orientierung. Da jedes Gewässer seine eigenen Gesetze hat, solltest du dein Rig, 
+    Vorfach, Leader und Blei immer an die tatsächlichen Gegebenheiten vor Ort anpassen.
+""")
+
+st.caption("Karpfen-Rig-Konfigurator v6.0 | Profi-Modul für Haken-Mechanik")
