@@ -3,7 +3,7 @@ import streamlit as st
 # ============================
 # 1. Setup & Design
 # ============================
-st.set_page_config(page_title="Karpfen-Hilfe v2.1", layout="wide")
+st.set_page_config(page_title="Karpfen-Hilfe v2.2", layout="wide")
 
 st.markdown("""
 <style>
@@ -30,7 +30,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.1</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.2</div>', unsafe_allow_html=True)
 
 # ============================
 # 2. Eingaben
@@ -99,7 +99,9 @@ with c3:
         help="Bodenart – beeinflusst Vorfach, Blei und Präsentation."
     )
     hindernisse = st.multiselect(
-        "Hindernisse", ["Muschelbänke", "Totholz", "Kraut", "Krebse"],
+        "Hindernisse",
+        ["Muschelbänke", "Totholz", "Kraut", "Krebse"],
+        default=[],  # leer = kein englischer Platzhalter
         help="Wähle Hindernisse aus – beeinflusst Blei und Vorfachmaterial."
     )
     angeldruck = st.selectbox(
