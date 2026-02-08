@@ -1,5 +1,5 @@
 import streamlit as st
-
+st.set_option('global.locale', 'de_DE')
 # ============================
 # 1. Setup & Design
 # ============================
