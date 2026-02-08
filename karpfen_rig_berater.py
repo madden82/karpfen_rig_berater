@@ -17,8 +17,7 @@ st.markdown('<div class="main-header">🎖️ Karpfen-Taktik-Konfigurator (Modul
 
 st.markdown("""
     <div class="hinweis-box">
-        <strong>💡 Anwendungshinweis:</strong> Dieses Programm ist in Module unterteilt. 
-        Fülle zuerst alle Parameter aus. Bei <em>'Weiß ich nicht'</em> wird automatisch das 
+        <strong>💡 Anwendungshinweis:</strong> Fülle zuerst alle Parameter aus. Bei <em>'Weiß ich nicht'</em> wird automatisch das 
         <strong>Worst-Case-Sicherheits-Setup</strong> gewählt.
     </div>
     """, unsafe_allow_html=True)
@@ -69,7 +68,7 @@ with t3:
     wurfweite = st.slider("Benötigte Wurfweite (m)", 0, 180, 60) if ausbringung != "Boot" else 0
     ziel_gewicht = st.number_input("Max. erwartetes Karpfengewicht (kg)", 5, 40, 15)
 
-st.info("Kopiere nun **Teil 2 (Die Logik-Engine)** unter diesen Code.")
+
 # ==========================================
 # 3. EXPERTEN-LOGIK-ENGINE (TEIL 2)
 # ==========================================
