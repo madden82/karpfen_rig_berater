@@ -1,125 +1,140 @@
 import streamlit as st
 import datetime
 
-# ============================
-# 1. Setup & Design
-# ============================
-st.set_page_config(page_title="Karpfen-Hilfe v2.5 Ultimate", layout="wide")
+# Setup
+st.set_page_config(page_title="Karpfen-Taktik Pro v3.0", layout="wide")
 
+# Custom CSS für bessere Optik
 st.markdown("""
 <style>
-.main-header { font-size: 2.2rem; color: #1b5e20; font-weight: bold; text-align: center; }
-.section-header { background-color: #2e7d32; color: white; padding: 10px; border-radius: 8px; margin-top: 20px; font-weight: bold; }
-.result-card { background-color: #f1f8e9; padding: 20px; border-radius: 15px; border: 1px solid #c8e6c9; }
+.result-box { background-color: #f8f9fa; border-left: 5px solid #2e7d32; padding: 15px; margin: 10px 0; border-radius: 5px; }
+.reason-text { font-size: 0.9rem; color: #555; font-style: italic; }
+.header-style { color: #1b5e20; font-weight: bold; border-bottom: 2px solid #2e7d32; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.5 (Vollversion)</div>', unsafe_allow_html=True)
+st.title("🎣 Karpfen-Taktik Pro v3.0")
 
 # ============================
-# 2. Eingaben (Alle Felder!)
+# EINGABESEKTIERUNG
 # ============================
-c1, c2, c3 = st.columns(3)
-
-with c1:
-    st.markdown("### 🌊 Gewässer & Mechanik")
-    gewaesser_typ = st.selectbox("Typ", ["-- Bitte wählen --", "See", "Baggersee", "Kanal", "Fluss", "Strom"])
-    stroemung = "Keine"
-    if gewaesser_typ in ["Kanal", "Fluss", "Strom"]:
-        stroemung = st.select_slider("Strömung", ["Keine", "Leicht", "Mittel", "Stark"])
-    tiefe_spot = st.number_input("Tiefe (m)", 0.5, 40.0, 3.5)
-    ausbringung = st.selectbox("Ausbringung", ["-- Bitte wählen --", "Wurf", "Boot", "Beides"])
-    boot_variante = None
-    if ausbringung == "Boot":
-        boot_variante = st.selectbox("Boot-Unterauswahl", ["-- Bitte wählen --", "Wurf vom Boot", "Ablegen vom Boot"])
-    wurfweite = st.slider("Wurfweite (m)", 0, 180, 60)
-
-with c2:
-    st.markdown("### 🌡️ Umwelt & Biologie")
+with st.sidebar:
+    st.header("📍 Spot-Parameter")
+    gewaesser = st.selectbox("Gewässer", ["See", "Fluss/Kanal", "Strom"])
+    tiefe = st.number_input("Tiefe (m)", 0.5, 30.0, 4.0)
+    boden = st.selectbox("Bodenbeschaffenheit", ["Sand/Kies", "Lehm", "Weicher Schlamm", "Faulschlamm/Moder"])
+    hindernisse = st.multiselect("Hindernisse", ["Muscheln", "Totholz", "Kraut", "Krebse"])
+    
+    st.header("🌤️ Umwelt & Biologie")
     temp = st.slider("Wassertemperatur (°C)", 0, 35, 15)
-    wetter = st.selectbox("Wetter", ["-- Bitte wählen --", "Sonnig", "Bewölkt", "Regen"])
-    druck_tendenz = st.selectbox("Luftdruck-Tendenz", ["-- Bitte wählen --", "Stabil", "Fallend", "Steigend"])
-    zeit = st.multiselect("Zeitraum", ["Vormittag", "Nachmittag", "Abend", "Nacht"], default=["Abend"])
-    jahreszeit = st.selectbox("Jahreszeit", ["Winter", "Frühling", "Sommer", "Herbst"], 
-                             index=datetime.datetime.now().month // 3 % 4)
-    weissfisch = st.select_slider("Weißfisch-Dichte", ["Niedrig", "Mittel", "Hoch", "Extrem"])
-    karpfen_max = st.number_input("Erwartete Maximalgröße (kg)", 1.0, 50.0, 12.0)
-
-with c3:
-    st.markdown("### 🏗️ Spot & Strategie")
-    boden = st.selectbox("Boden", ["-- Bitte wählen --", "Sand/Kies", "Lehm", "Schlamm", "Moder"])
-    hindernisse = st.multiselect("Hindernisse", ["Muschelbänke", "Totholz", "Kraut", "Krebse"])
-    angeldruck = st.selectbox("Angeldruck", ["-- Bitte wählen --", "Gering", "Mittel", "Hoch"])
+    angeldruck = st.select_slider("Angeldruck", ["Gering", "Mittel", "Hoch", "Extrem"])
+    fischgroesse = st.number_input("Zielfisch-Gewicht (kg)", 1, 50, 15)
+    weissfisch = st.select_slider("Weißfisch-Dichte", ["Niedrig", "Mittel", "Hoch"])
 
 # ============================
-# 3. Logik-Engine (Verknüpfung)
+# LOGIK-ENGINE (Deep Linking)
 # ============================
-def berechne_hilfe():
-    t = {
-        "blei_form": "Birne", "blei_gew": 85, "blei_typ": "Safety-Clip",
-        "vorfach_mat": "Coated Braid", "vorfach_len": 20, "h_typ": "Wide Gape",
-        "h_gr": 6, "h_farbe": "Dunkel", "koeder": "Boilie", "koeder_gr": 20,
-        "koeder_h": "Normal", "futter_menge": 0, "futter_typ": "", "begruendungen": []
+def generiere_taktik():
+    # Initialisierung des Taktik-Objekts
+    taktik = {
+        "haken": {"typ": "Wide Gape", "gr": 6, "grund": ""},
+        "vorfach": {"mat": "Coated Braid", "len": 20, "grund": ""},
+        "blei": {"gewicht": 100, "typ": "Safety Clip", "form": "Birne", "grund": ""},
+        "koeder": {"art": "Boilie", "gr": 20, "grund": ""}
     }
 
-    # -- BLEI & SYSTEM --
-    if stroemung in ["Mittel", "Stark"] or gewaesser_typ == "Strom":
-        t["blei_form"], t["blei_gew"] = "Grippa", (180 if stroemung == "Stark" else 130)
-    elif wurfweite > 90:
-        t["blei_form"] = "Zip-Blei"
-
-    if "Kraut" in hindernisse or boden == "Schlamm":
-        t["blei_typ"], t["vorfach_len"] = "Heli-Safe", 30
-        t["begruendungen"].append("☁️ Helikopter-System für weichen Boden/Kraut.")
-    elif any(h in ["Muschelbänke", "Totholz"] for h in hindernisse):
-        t["blei_typ"], t["vorfach_mat"] = "Drop-Off", "Abriebfestes Mono"
-        t["begruendungen"].append("🪵 Drop-Off & Snag-Leader für Hindernisse.")
-
-    # -- HAKEN (Größe vs. Fischgewicht vs. Druck) --
-    h_nummer = 8 if karpfen_max < 8 else (4 if karpfen_max > 20 else 6)
-    if angeldruck == "Hoch": h_nummer = min(10, h_nummer + 2) # Kleinerer Haken bei Druck
-    t["h_gr"] = h_nummer
+    # --- 1. HAKEN-LOGIK (Verknüpfung: Ködergröße + Angeldruck + Hindernisse) ---
+    # Grundgröße basierend auf Fischgewicht
+    h_gr = 6
+    if fischgroesse > 20: h_gr = 4
+    if fischgroesse < 10: h_gr = 8
     
-    if wetter == "Sonnig" and tiefe_spot < 4:
-        t["h_farbe"] = "Matt / Reflexionsfrei"
+    # Korrektur durch Angeldruck (Vorsichtige Fische = kleinere Haken)
+    if angeldruck in ["Hoch", "Extrem"]:
+        h_gr += 2 
+    
+    # Korrektur durch Hindernisse (Starker Halt nötig = größerer Haken)
+    if any(x in hindernisse for x in ["Totholz", "Muscheln"]):
+        h_gr = max(2, h_gr - 2)
+        taktik["haken"]["typ"] = "Curve Shank (stärkerer Halt)"
+    
+    taktik["haken"]["gr"] = min(10, max(2, h_gr))
+    taktik["haken"]["grund"] = f"Größe {taktik['haken']['gr']} gewählt, da bei {angeldruck}em Angeldruck und {fischgroesse}kg Fischen die Balance zwischen Tarnung und Hakeffekt stimmen muss."
 
-    # -- KÖDER (Temp x Weißfisch x Krebse) --
-    if weissfisch in ["Hoch", "Extrem"] or "Krebse" in hindernisse:
-        t["koeder_gr"], t["koeder_h"] = 24, "Extra Hart"
-        t["begruendungen"].append("🦀 Köder gegen Krebse/Weißfisch gehärtet.")
-    elif temp < 12:
-        t["koeder"], t["koeder_gr"] = "Wafter / Pop-Up", 16
-
-    # -- FUTTER (Jahreszeit x Temp x Druck) --
-    menge = 0.5
-    if temp > 15: menge += 1.5
-    if jahreszeit == "Herbst": menge += 1.0 # "Fressen für den Winter"
-    if druck_tendenz == "Fallend": menge += 0.5
-    t["futter_menge"] = round(menge, 1)
-    t["futter_typ"] = "High-Attract / Low-Oil" if temp < 12 else "Nahrhaft (Fischmehl)"
-
-    return t
-
-# ============================
-# 4. Ausgabe
-# ============================
-if st.button("HILFE GENERIEREN"):
-    if gewaesser_typ == "-- Bitte wählen --" or boden == "-- Bitte wählen --":
-        st.warning("⚠️ Bitte wähle mindestens Gewässertyp und Boden aus!")
+    # --- 2. VORFACH-LOGIK (Verknüpfung: Boden + Hindernisse + Temperatur) ---
+    if boden == "Weicher Schlamm":
+        taktik["vorfach"]["len"] = 30
+        taktik["vorfach"]["mat"] = "Soft Braid"
+        taktik["vorfach"]["grund"] = "Langes, weiches Vorfach, damit der Köder nicht im Schlamm versinkt, wenn das Blei einsinkt."
+    elif boden == "Faulschlamm/Moder":
+        taktik["vorfach"]["len"] = 15
+        taktik["vorfach"]["mat"] = "Chod Rig / Mono"
+        taktik["vorfach"]["grund"] = "Pop-Up Montage (Chod), um den Köder über dem stinkenden Moder zu präsentieren."
+    elif any(x in hindernisse for x in ["Muscheln", "Totholz"]):
+        taktik["vorfach"]["mat"] = "Mantel-Vorfach (steil) oder Fluorocarbon"
+        taktik["vorfach"]["grund"] = "Abriebfestes Material zwingend erforderlich wegen {', '.join(hindernisse)}."
     else:
-        res = berechne_hilfe()
-        st.markdown('<div class="section-header">📋 Dein Einsatzplan</div>', unsafe_allow_html=True)
-        with st.container():
-            st.markdown('<div class="result-card">', unsafe_allow_html=True)
-            r1, r2, r3, r4 = st.columns(4)
-            r1.metric("Blei", f"{res['blei_gew']}g", res["blei_form"])
-            r1.write(f"System: {res['blei_typ']}")
-            r2.metric("Vorfach", f"{res['vorfach_len']}cm", res["vorfach_mat"])
-            r2.write(f"Haken: Gr. {res['h_gr']} ({res['h_farbe']})")
-            r3.metric("Köder", f"{res['koeder_gr']}mm", res["koeder_h"])
-            r3.write(f"Typ: {res['koeder']}")
-            r4.metric("Futter", f"{res['futter_menge']}kg", res["futter_typ"])
-            r4.write(f"Saison: {jahreszeit}")
-            st.markdown('</div>', unsafe_allow_html=True)
-        for b in res["begruendungen"]:
-            st.info(b)
+        taktik["vorfach"]["grund"] = "Standard Coated Braid für saubere Präsentation auf hartem Boden."
+
+    # --- 3. BLEI-LOGIK (Verknüpfung: Gewässer + Tiefe + Boden) ---
+    gewicht = 100
+    if gewaesser == "Strom":
+        taktik["blei"]["form"] = "Grippa"
+        gewicht = 180
+    elif tiefe > 10:
+        gewicht += 30
+        taktik["blei"]["grund"] = "Erhöhtes Gewicht für bessere Köderkontrolle und Selbsthakeffekt in großer Tiefe."
+    
+    if boden in ["Weicher Schlamm", "Faulschlamm/Moder"]:
+        taktik["blei"]["typ"] = "Helikopter-System"
+        taktik["blei"]["grund"] += " Helikopter-Montage verhindert, dass das Vorfach mit dem Blei in den Boden gezogen wird."
+    
+    taktik["blei"]["gewicht"] = gewicht
+
+    # --- 4. KÖDER-LOGIK (Verknüpfung: Temperatur + Weißfisch + Krebse) ---
+    if "Krebse" in hindernisse or weissfisch == "Hoch":
+        taktik["koeder"]["art"] = "Duo-Hartholz oder gesalzene Boilies"
+        taktik["koeder"]["gr"] = 24
+        taktik["koeder"]["grund"] = "Großer, harter Köder notwendig, um Krebsattacken und Weißfisch-Aktivität zu überstehen."
+    elif temp < 10:
+        taktik["koeder"]["art"] = "Auffälliger Pop-Up oder Wafter"
+        taktik["koeder"]["gr"] = 14
+        taktik["koeder"]["grund"] = "Kleinerer, hochattraktiver Köder, da der Stoffwechsel der Fische bei 10°C reduziert ist."
+    else:
+        taktik["koeder"]["grund"] = "Standard-Boilie (20mm) für ausgewogenes Fressverhalten."
+
+    return taktik
+
+# ============================
+# AUSGABE
+# ============================
+if st.button("TAKTIK-ANALYSE STARTEN"):
+    res = generiere_taktik()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("🎣 Montage-Details")
+        st.markdown(f"""
+        <div class="result-box">
+            <b>Haken:</b> {res['haken']['typ']} Gr. {res['haken']['gr']}<br>
+            <span class="reason-text">{res['haken']['grund']}</span>
+        </div>
+        <div class="result-box">
+            <b>Vorfach:</b> {res['vorfach']['mat']} ({res['vorfach']['len']} cm)<br>
+            <span class="reason-text">{res['vorfach']['grund']}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.subheader("⚙️ System & Köder")
+        st.markdown(f"""
+        <div class="result-box">
+            <b>Blei:</b> {res['blei']['gewicht']}g {res['blei']['form']} ({res['blei']['typ']})<br>
+            <span class="reason-text">{res['blei']['grund']}</span>
+        </div>
+        <div class="result-box">
+            <b>Köder:</b> {res['koeder']['art']} ({res['koeder']['gr']} mm)<br>
+            <span class="reason-text">{res['koeder']['grund']}</span>
+        </div>
+        """, unsafe_allow_html=True)
