@@ -25,125 +25,93 @@ st.markdown('<div class="section-header">📍 1. Gewässer & Umwelt</div>', unsa
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    gewaesser_typ = st.selectbox("Gewässertyp", 
-                                ["See / Weiher", "Baggersee", "Kanal", "Fluss", "Strom", "Stausee"],
-                                help="Bestimmt die grundlegende Montage und Strömungsgefahr am Spot.")
+    gewaesser_typ = st.selectbox("Gewässertyp", ["See / Weiher", "Baggersee", "Kanal", "Fluss", "Strom", "Stausee"], help="Bestimmt Montage und Strömungsgefahr.")
     stroemung = "Keine"
     if gewaesser_typ in ["Kanal", "Fluss", "Strom"]:
-        stroemung = st.select_slider("Strömungsstärke", options=["Keine", "Leicht", "Mittel", "Stark"],
-                                    help="Beeinflusst Bleigewicht, Bleiform (Krallen) und Wurfwinkel.")
-    
-    tiefe_max = st.number_input("Maximale Gewässertiefe (m)", 1.0, 60.0, 8.0,
-                                help="Wichtig, um das thermische Verhalten des Wassers (Sprungschicht) zu berechnen.")
-    tiefe_spot = st.number_input("Deine Spottiefe (m)", 0.5, 50.0, 3.5,
-                                help="Die Tiefe, in der dein Köder tatsächlich liegen soll.")
-    angeltag = st.date_input("Wann fischst du?", datetime.date.today(),
-                             help="Berechnet die Mondphase und die saisonale Taktik für diesen Tag.")
+        stroemung = st.select_slider("Strömungsstärke", options=["Keine", "Leicht", "Mittel", "Stark"], help="Beeinflusst Bleiform (Krallen).")
+    tiefe_max = st.number_input("Maximale Gewässertiefe (m)", 1.0, 60.0, 8.0, help="Wichtig für Thermik (Sprungschicht).")
+    tiefe_spot = st.number_input("Deine Spottiefe (m)", 0.5, 50.0, 3.5, help="Tiefe am Ablegeplatz.")
+    angeltag = st.date_input("Wann fischst du?", datetime.date.today(), help="Berechnet Mondphase & Jahreszeit.")
 
 with c2:
     # JAHRESZEIT AUTOMATIK
-    month = angeltag.month
-    if month in [3, 4, 5]: jahreszeit = "Frühjahr"
-    elif month in [6, 7, 8]: jahreszeit = "Sommer"
-    elif month in [9, 10, 11]: jahreszeit = "Herbst"
-    else: jahreszeit = "Winter"
+    m = angeltag.month
+    if m in [3, 4, 5]: jz = "Frühjahr"
+    elif m in [6, 7, 8]: jz = "Sommer"
+    elif m in [9, 10, 11]: jz = "Herbst"
+    else: jz = "Winter"
+    st.write(f"**Erkannte Jahreszeit:** {jz}")
     
-    st.write(f"**Erkannte Jahreszeit:** {jahreszeit}")
-    
-    temp = st.slider("Wassertemperatur (°C)", 0, 35, 15,
-                     help="Direkter Einfluss auf den Stoffwechsel und die benötigte Futtermenge.")
-    luftdruck = st.number_input("Luftdruck (hPa)", 950, 1050, 1013,
-                                help="1013 hPa ist der Standard. Fallender Druck ist oft ein Beiß-Signal.")
-    druck_tendenz = st.selectbox("Luftdruck-Tendenz", ["Stabil", "Fallend", "Steigend"],
-                                 help="Fallender Druck deutet oft auf fressende Fische hin.")
+    temp = st.slider("Wassertemperatur (°C)", 0, 35, 15, help="Einfluss auf Stoffwechsel.")
+    luftdruck = st.number_input("Luftdruck (hPa)", 950, 1050, 1013, help="1013 hPa ist Standard.")
+    druck_tendenz = st.selectbox("Luftdruck-Tendenz", ["Stabil", "Fallend", "Steigend"], help="Fallend = Beißsignal.")
 
 with c3:
-    boden_struktur = st.selectbox("Bodenbeschaffenheit", 
-                                 ["-- Bitte wählen --", "Sand / Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Moder (faulig)", "Weiß ich nicht"], 
-                                 index=0, help="Entscheidet über Bleiform (Einsinken) und Vorfachlänge.")
+    boden = st.selectbox("Bodenbeschaffenheit", ["-- Bitte wählen --", "Sand / Kies (hart)", "Lehm (fest)", "Schlamm (weich)", "Moder (faulig)", "Weiß ich nicht"], index=0)
+    zeit = st.multiselect("Wann fischst du?", ["Vormittag", "Nachmittag", "Abend", "Nacht"], placeholder="-- Bitte wählen --")
+    hindernisse = st.multiselect("Hindernisse", ["Muschelbänke", "Totholz", "Kraut", "Scharfe Kanten", "Krebse", "Keine Hindernisse"], placeholder="-- Bitte wählen --")
+    weissfisch = st.select_slider("Weißfischvorkommen", options=["Niedrig", "Mittel", "Hoch", "Extrem"], value="Mittel")
+    ausbringung = st.radio("Ausbringung", ["Wurf vom Ufer", "Futterboot", "Boot"], horizontal=True)
     
-    zeitfenster = st.multiselect("Wann planst du zu fischen?", 
-                                 ["Vormittag", "Nachmittag", "Abend", "Nacht"], 
-                                 placeholder="-- Bitte wählen --",
-                                 help="Beeinflusst Lichtverhältnisse, Sauerstoff und Fischzugrouten.")
-    
-    hindernisse = st.multiselect("Hindernisse am Platz", 
-                                ["Muschelbänke", "Totholz", "Kraut", "Scharfe Kanten", "Krebse", "Keine Hindernisse"], 
-                                placeholder="-- Bitte wählen --",
-                                help="Bestimmt das Montagensystem und die Hakenstabilität.")
-    
-    weissfisch = st.select_slider("Vorkommen anderer Weißfische", 
-                                  options=["Niedrig", "Mittel", "Hoch", "Extrem"], 
-                                  value="Mittel",
-                                  help="Beeinflusst Ködergröße und Härte, um Beifänge zu vermeiden.")
-    
-    ausbringung = st.radio("Ausbringungsmethode", ["Wurf vom Ufer", "Futterboot", "Boot"], 
-                           horizontal=True, help="Wähle, wie du deine Montage zum Spot bringst.")
-    
-    boots_taktik = "Normal"; wurfweite = 0
+    b_taktik = "Normal"; w_weite = 0
     if ausbringung == "Boot":
-        boots_taktik = st.selectbox("Vorgehen vom Boot", ["Nur Ablegen", "Vom Boot auswerfen"], help="Ablegen erlaubt schwerere Bleie.")
+        b_taktik = st.selectbox("Boot-Vorgehen", ["Nur Ablegen", "Vom Boot auswerfen"])
     elif ausbringung == "Wurf vom Ufer":
-        wurfweite = st.slider("Wurfweite (m)", 0, 180, 60, help="Beeinflusst Bleiform und Gewicht.")
+        w_weite = st.slider("Wurfweite (m)", 0, 180, 60)
     
-    ziel_gewicht = st.number_input("Max. Karpfengewicht (kg)", 5, 40, 15, help="Wichtig für Hakenstärke.")
-    aktivitaet = st.select_slider("Fischverhalten", options=["Weiß ich nicht", "Apathisch", "Vorsichtig", "Normal", "Aggressiv"], value="Normal")
+    ziel_kg = st.number_input("Max. Karpfengewicht (kg)", 5, 40, 15)
+    aktivitaet = st.select_slider("Vorsicht (Fisch)", options=["Weiß ich nicht", "Apathisch", "Vorsichtig", "Normal", "Aggressiv"], value="Normal")
 
 # ==========================================
-# 3. EXPERTEN-LOGIK-ENGINE
+# 3. EXPERTEN-LOGIK-ENGINE (VOLLSTÄNDIG)
 # ==========================================
 def berechne_pro_logic():
     s = {
-        "blei_typ": "Safety-Clip Montage", "blei_form": "Birnenform (Smooth)", "blei_gewicht": 90,
-        "rig_typ": "Standard Haar-Rig", "koeder_praesentation": "Bodenköder",
-        "vorfach_material": "Ummanteltes Geflecht (Coated Braid)", "vorfach_laenge": "15-20 cm",
-        "leader": "Standard Leadcore / Anti-Tangle-Tube", "haken_typ": "Wide Gape",
-        "h_spitze": "Straight Point", "h_oehr": "Gerade", "h_draht": "Standard", "h_groesse": 6,
-        "koeder_empfehlung": "Standard 20mm Boilie", "koeder_haerte": "Normal", "koeder_groesse": "20mm",
-        "futter_menge": "Moderat (ca. 500g - 1kg)", "futter_art": "Mix aus Boilies & Pellets",
-        "begruendungen": [], "spot_empfehlungen": [], "unsicher": False
+        "blei_typ": "Safety-Clip Montage", "blei_form": "Birnenform (Smooth)", "blei_gew": 90,
+        "rig_typ": "Standard Haar-Rig", "pres": "Bodenköder", "vorfach_mat": "Coated Braid", 
+        "vorfach_len": "15-20 cm", "leader": "Leadcore / Tube", "h_typ": "Wide Gape",
+        "h_spitze": "Straight Point", "h_oehr": "Gerade", "h_draht": "Standard", "h_gr": 6,
+        "k_empf": "Standard 20mm Boilie", "k_h": "Normal", "k_gr": "20mm",
+        "f_menge": "Moderat (ca. 1kg)", "f_art": "Mix aus Boilies & Pellets",
+        "logik": {"montage": "", "haken": "", "futter": "", "umwelt": ""}
     }
 
-    if boden_struktur == "-- Bitte wählen --" or not zeitfenster or not hindernisse: s["unsicher"] = True
-
-    # Haken-Größe
-    if ziel_gewicht < 10: s["h_groesse"] = 8
-    elif ziel_gewicht > 22: s["h_groesse"] = 4
-    else: s["h_groesse"] = 6
-
-    # Luftdruck
-    if druck_tendenz == "Fallend":
-        s["futter_menge"] = "Aggressiv (ca. 1.5kg - 3kg)"
-        s["begruendungen"].append("➔ **Luftdruck-Bonus:** Fallender Druck steigert den Stoffwechsel. Futtermenge erhöhen!")
-    elif druck_tendenz == "Steigend" or luftdruck > 1025:
-        s["futter_menge"] = "Minimal (PVA-Stick / Single)"
-        s["koeder_empfehlung"] = "Hochattraktiver Single-Bait (Pop-Up)"
-
-    # Wurf/Boot
-    if ausbringung == "Wurf vom Ufer" and wurfweite > 100:
-        s["blei_gewicht"] = 120; s["blei_form"] = "Distanz-Blei (Zip/Torpedo)"
-    elif ausbringung == "Boot":
-        s["blei_gewicht"] = 140 if boots_taktik == "Nur Ablegen" else 110
-
-    # Weißfisch
-    if weissfisch in ["Hoch", "Extrem"]:
-        s["koeder_haerte"] = "Extra Hart / Gepökelt"; s["koeder_groesse"] = "24mm oder Doppel-20mm"
-        s["koeder_empfehlung"] = "Harte Fisch-Boilies oder Tigernüsse."
-
-    # Boden/Hindernisse
-    if boden_struktur in ["Schlamm (weich)", "Moder (faulig)"] or "Kraut" in hindernisse:
+    # MONTAGEN-LOGIK & BEGRÜNDUNG
+    if boden in ["Schlamm (weich)", "Moder (faulig)"] or "Kraut" in hindernisse:
         s["blei_typ"] = "Heli-Safe System"; s["rig_typ"] = "Helikopter-Rig"
-        s["koeder_praesentation"] = "Pop-Up oder Schneemann"; s["vorfach_laenge"] = "25-35 cm"
-    
-    if any(h in hindernisse for h in ["Muschelbänke", "Scharfe Kanten"]):
-        s["h_draht"] = "X-Strong (Dickdrähtig)"
-        s["leader"] = "Dickes Mono / Schlagschnur + Leadcore"
+        s["pres"] = "Pop-Up / Schneemann"; s["vorfach_len"] = "25-35 cm"
+        s["logik"]["montage"] = "➔ **Weicher Boden/Kraut:** Das Heli-Rig verhindert, dass der Köder mit dem Blei einsinkt. Der Köder bleibt sauber obenauf liegen."
+    else:
+        s["logik"]["montage"] = "➔ **Harter Boden:** Die Safety-Clip Montage mit kurzem Vorfach liefert den direktesten Selbsthakeffekt, da der Fisch sofort auf das Bleigewicht trifft."
 
-    if aktivitaet in ["Vorsichtig", "Apathisch"]:
-        s["vorfach_material"] = "Fluorocarbon (Unsichtbar)"
+    # HAKEN-LOGIK & BEGRÜNDUNG
+    if ziel_kg > 22: s["h_gr"] = 4; s["h_draht"] = "X-Strong"
+    if s["pres"] != "Bodenköder": 
+        s["h_typ"] = "Curve Shank"; s["h_oehr"] = "Nach innen gebogen"
+        s["logik"]["haken"] = f"➔ **Mechanik:** Der Curve Shank Haken (Gr. {s['h_gr']}) dreht sich bei auftreibenden Ködern aggressiver ein und greift sicher in der Unterlippe."
+    else:
+        s["logik"]["haken"] = f"➔ **Mechanik:** Der Wide Gape Haken (Gr. {s['h_gr']}) ist der beste Allrounder für Bodenköder und bietet maximalen Halt im Drill."
 
-    if jahreszeit == "Winter":
-        s["spot_empfehlungen"].append(f"📍 Winter-Tipp: Suche die tiefsten Stellen (ca. {tiefe_max}m) auf.")
+    # FUTTER- & KÖDER-LOGIK
+    if weissfisch in ["Hoch", "Extrem"] or "Krebse" in hindernisse:
+        s["k_h"] = "Extra Hart / Gepökelt"; s["k_gr"] = "24mm / Doppel-20mm"; s["k_empf"] = "Harte Fisch-Boilies / Tigernüsse"
+        s["logik"]["futter"] = "➔ **Selektion:** Wegen hohem Weißfisch-/Krebsdruck nutzen wir große, harte Köder, um Beifänge zu vermeiden und die Nacht durchzufischen."
+    else:
+        s["logik"]["futter"] = "➔ **Attraktion:** Bei normalem Druck ist ein 20mm Köder ideal, um schnell Akzeptanz am Platz zu finden."
+
+    # UMWELT & LUFTDRUCK
+    if druck_tendenz == "Fallend":
+        s["f_menge"] = "Aggressiv (ca. 2-3kg)"
+        s["logik"]["umwelt"] = "➔ **Luftdruck:** Fallender Druck aktiviert den Stoffwechsel. Die Fische suchen aktiv Nahrung – mehr Futter hält sie länger am Spot."
+    elif luftdruck > 1025:
+        s["f_menge"] = "Minimal (PVA / Single)"; s["k_empf"] = "Hochattraktiver Pop-Up"
+        s["logik"]["umwelt"] = "➔ **Hochdruck:** Fische stehen oft träge im Mittelwasser. Ein einzelner, auffälliger Reizköder bringt hier oft den einzigen Biss."
+    else:
+        s["logik"]["umwelt"] = f"➔ **Saison:** Im {jz} suchen Fische aktiv nach Energie. Ein moderater Futterteppich ist die sicherste Wahl."
+
+    # BOOT/WURF SPEZIAL
+    if ausbringung == "Boot": s["blei_gew"] = 140 if b_taktik == "Nur Ablegen" else 110
+    elif ausbringung == "Wurf vom Ufer" and w_weite > 100: s["blei_gew"] = 125; s["blei_form"] = "Zip/Distance"
 
     return s
 
@@ -158,41 +126,48 @@ res_c1, res_c2, res_c3 = st.columns(3)
 
 with res_c1:
     st.subheader("🎣 Montage")
-    st.info(f"**System:** {ergebnis['blei_typ']}\n\n**Blei:** {ergebnis['blei_form']} ({ergebnis['blei_gewicht']}g)")
+    st.info(f"**System:** {ergebnis['blei_typ']}\n\n**Blei:** {ergebnis['blei_form']} ({ergebnis['blei_gew']}g)")
+    st.markdown(f"<small>{ergebnis['logik']['montage']}</small>", unsafe_allow_html=True)
 
 with res_c2:
     st.subheader("🧶 Rig & Vorfach")
-    st.success(f"**Rig:** {ergebnis['rig_typ']}\n\n**Material:** {ergebnis['vorfach_material']}\n\n**Länge:** {ergebnis['vorfach_laenge']}")
+    st.success(f"**Rig:** {ergebnis['rig_typ']}\n\n**Material:** {ergebnis['vorfach_mat']}\n\n**Länge:** {ergebnis['vorfach_len']}")
+    st.markdown(f"<small>➔ **Tarnung:** {ergebnis['vorfach_mat']} wird gewählt, um {aktivitaet.lower()} Fische nicht zu verschrecken.</small>", unsafe_allow_html=True)
 
 with res_c3:
     st.subheader("🪝 Haken-Setup")
-    st.warning(f"**Haken:** {ergebnis['haken_typ']} (Gr. {ergebnis['h_groesse']})\n\n**Draht:** {ergebnis['h_draht']}\n\n**Öhr:** {ergebnis['h_oehr']}")
+    st.warning(f"**Modell:** {ergebnis['h_typ']} (Gr. {ergebnis['h_gr']})\n\n**Draht:** {ergebnis['h_draht']}\n\n**Spitze:** {ergebnis['h_spitze']}")
+    st.markdown(f"<small>{ergebnis['logik']['haken']}</small>", unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">🍱 3. Köder- & Futterstrategie</div>', unsafe_allow_html=True)
 k_c1, k_c2 = st.columns(2)
 with k_c1:
-    st.write(f"**Köder:** {ergebnis['koeder_empfehlung']}\n\n**Größe:** {ergebnis['koeder_groesse']} | **Härte:** {ergebnis['koeder_haerte']}")
+    st.write(f"**Köder:** {ergebnis['k_empf']}\n\n**Größe:** {ergebnis['k_gr']} | **Härte:** {ergebnis['k_h']}")
+    st.markdown(f"<small>{ergebnis['logik']['futter']}</small>", unsafe_allow_html=True)
 with k_c2:
-    st.write(f"**Futtermenge:** {ergebnis['futter_menge']}\n\n**Futterart:** {ergebnis['futter_art']}")
+    st.write(f"**Futtermenge:** {ergebnis['f_menge']}\n\n**Futterart:** {ergebnis['f_art']}")
+    st.markdown(f"<small>{ergebnis['logik']['umwelt']}</small>", unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">🔍 4. Spot-Analyse & Natur-Physik</div>', unsafe_allow_html=True)
 sa1, sa2 = st.columns(2)
 with sa1:
-    st.markdown(f'<div class="spot-empfehlung">Tiefe: {tiefe_spot}m | Zeit: {", ".join(zeitfenster)}</div>', unsafe_allow_html=True)
-    if luftdruck > 1022: st.warning("⚖️ **Hoher Luftdruck:** Teste ein **ZIG-Rig** (Mittelwasser)!")
+    z_str = ", ".join(zeit) if zeit else "--"
+    st.markdown(f'<div class="spot-empfehlung">Tiefe: {tiefe_spot}m | Max: {tiefe_max}m | Zeit: {z_str}</div>', unsafe_allow_html=True)
+    if luftdruck > 1022: st.warning("⚖️ **ZIG-Rig Tipp:** Hoher Druck! Fische stehen evtl. im Mittelwasser.")
 with sa2:
-    for empf in ergebnis["spot_empfehlungen"]: st.write(empf)
-    if ausbringung == "Boot": st.write("➔ **Profi-Tipp:** Nutze Backleads zum Absenken der Schnur am Boot.")
+    if jz == "Winter": st.write(f"📍 Suche tiefste Löcher (ca. {tiefe_max}m).")
+    elif "Nacht" in zeit: st.write("📍 Nacht-Tipp: Eine Rute extrem flach (0.5 - 1.5m) ablegen.")
+    else: st.write("📍 Suche markante Kanten oder Muschelbänke.")
+    if ausbringung == "Boot": st.write("➔ **Profi-Tipp:** Nutze Backleads zum Absenken der Schnur.")
 
 def get_moon(d):
-    diff = d - datetime.date(2001, 1, 1); days = diff.days; lun = 29.530588853; pos = (days / lun) % 1
-    if pos < 0.06: return "🌑 Neumond", "Top-Zeit! Maximale Dunkelheit."
-    elif pos < 0.55 and pos > 0.45: return "🌕 Vollmond", "Vorsicht: Hohe Sichtbarkeit nachts!"
-    return "🌓 Sichel/Halbmond", "Normale Bedingungen."
+    diff = d - datetime.date(2001, 1, 1); lun = 29.530588853; pos = (diff.days / lun) % 1
+    if pos < 0.06: return "🌑 Neumond", "Dunkelheit: Fische ziehen oft furchtlos flach."
+    if 0.45 < pos < 0.55: return "🌕 Vollmond", "Vorsicht: Schnurschatten & Silhouette sichtbar!"
+    return "🌓 Sichel/Halbmond", "Solide Bedingungen."
 
 mond_n, mond_t = get_moon(angeltag)
-st.markdown(f'<div class="taktik-detail">🌙 **Mondphase für {angeltag.strftime("%d.%m.%Y")}:** {mond_n} - {mond_t}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="taktik-detail">🌙 **Mondphase ({angeltag.strftime("%d.%m.%Y")}):** {mond_n} - {mond_t}</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="section-header">📖 Experten-Logik (Begründungen)</div>', unsafe_allow_html=True)
-for b in ergebnis["begruendungen"]: st.markdown(f'<div class="taktik-detail">{b}</div>', unsafe_allow_html=True)
-if ergebnis["unsicher"]: st.warning("⚠️ Hinweis: Auswahl unvollständig. Sicherheits-Setup aktiv.")
+if boden == "-- Bitte wählen --" or not zeit:
+    st.warning("⚠️ Bitte wähle noch Boden und Zeitfenster für eine präzisere Analyse.")
