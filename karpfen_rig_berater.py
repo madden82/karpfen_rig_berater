@@ -376,3 +376,39 @@ st.info("""
 """)
 
 st.caption("Karpfen-Rig-Konfigurator v6.0 | Profi-Modul für Haken-Mechanik")
+    # --- KORREKTUR: MONTAGEN-LOGIK (Heli-Safe & Strömungs-Physik) ---
+
+    # 1. Logik: Heli-Safe System
+    if boden_struktur == "Weiß ich nicht" or boden_struktur in ["Schlamm (weich)", "Moder (faulig)"] or "Kraut" in hindernisse:
+        s["blei_typ"] = "Heli-Safe System"
+        s["rig_typ"] = "Helikopter-Rig"
+        s["begruendungen"].append(
+            "➔ **Warum Heli-Safe?** Bei weichem Boden oder Kraut sinkt das Blei ein. Das Heli-Safe System ermöglicht es dem Vorfach, auf dem Leader nach oben zu gleiten, "
+            "sodass der Köder frei präsentiert bleibt. Gleichzeitig bietet es die Sicherheit, dass das Blei im Drill oder bei einem Hänger ausgeklinkt wird, "
+            "was bei Helikopter-Montagen sonst oft ein Problem darstellt."
+        )
+
+    # 2. Logik: Strömungs-Physik (Das "Warum" der Krallen)
+    if stroemung in ["Mittel", "Stark"]:
+        s["blei_form"] = "Krallenblei (Gripper)"
+        s["blei_gewicht"] = 140 if stroemung == "Mittel" else 180
+        s["begruendungen"].append(
+            f"➔ **Warum Gripper-Blei?** Bei {stroemung}er Strömung bietet ein glattes Blei zu wenig Reibungswiderstand und würde über den Grund rollen. "
+            "Die Krallen (Gripper) verankern das Blei physisch im Boden, wodurch die Montage fixiert wird. Nur so bleibt der Köder präzise am Spot liegen "
+            "und der Selbsthakeffekt wird durch den festen Widerstand des verankerten Bleis erst ermöglicht."
+        )
+
+    # 3. Logik: Safety-Clip (Wann und Warum?)
+    if s["blei_typ"] == "Safety-Clip Montage" and any(h in ["Totholz", "Muschelbänke"] for h in hindernisse):
+        s["begruendungen"].append(
+            "➔ **Warum Safety-Clip?** In Hindernissen ist der Safety-Clip nötig, weil er als Sollbruchstelle fungiert. Sobald das Blei hängen bleibt, "
+            "hebelt der Clip das Blei ab. Ohne diesen Mechanismus würde das Blei als Anker wirken und zum Abriss der Hauptschnur führen."
+        )
+
+    # 4. Logik: Wurf-Taktik (Das "Warum" des Winkels)
+    if stroemung != "Keine":
+        s["begruendungen"].append(
+            "➔ **Warum im Winkel mit der Strömung werfen?** Wenn du gegen den Strom wirfst, drückt der Wasserdruck die Schnur und das Vorfach "
+            "zurück über das Blei und die Hauptschnur. Dies führt fast immer zu Verwicklungen. Wirfst du mit oder schräg zur Strömung, "
+            "streckt der Wasserdruck das Vorfach sauber vom Blei weg."
+        )
