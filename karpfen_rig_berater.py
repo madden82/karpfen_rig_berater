@@ -3,7 +3,7 @@ import streamlit as st
 # ============================
 # 1. Setup & Design
 # ============================
-st.set_page_config(page_title="Karpfen-Hilfe v2.4", layout="wide")
+st.set_page_config(page_title="Karpfen-Hilfe v2.5", layout="wide")
 
 st.markdown("""
 <style>
@@ -30,7 +30,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.4</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🎣 Karpfen-Hilfe v2.5</div>', unsafe_allow_html=True)
 
 # ============================
 # 2. Eingaben
@@ -92,7 +92,7 @@ with c2:
         help="Hoch bedeutet mehr Störfische – beeinflusst Ködergröße und Härte."
     )
     karpfen_max = st.number_input(
-        "Erwartete Maximalgröße Karpfen (kg)", 1.0, 30.0, 10.0, step=0.5,
+        "Erwartete Maximalgröße Karpfen (kg)", 1.0, 45.0, 10.0, step=0.5,
         help="Maximalgewicht Karpfen am Spot – wichtig für Haken-, Köder- und Vorfachwahl."
     )
 
@@ -189,15 +189,17 @@ def berechne_hilfe():
         t["koeder_h"] = "Normal"
         t["begruendungen"].append("☀️ Standardbedingungen → Boilie Köder.")
 
-    # Haken-Größe nach erwarteter Karpfengröße
+    # Haken-Größe nach Maximalgewicht Karpfen (Wide Gape)
     if karpfen_max <= 5:
-        t["h_gr"] = 4
-    elif karpfen_max <= 12:
+        t["h_gr"] = 8
+    elif karpfen_max <= 10:
         t["h_gr"] = 6
     elif karpfen_max <= 20:
-        t["h_gr"] = 8
+        t["h_gr"] = 4
+    elif karpfen_max <= 40:
+        t["h_gr"] = 2
     else:
-        t["h_gr"] = 10
+        t["h_gr"] = 2
     t["begruendungen"].append(f"🎯 Haken-Größe angepasst an Maximalgewicht {karpfen_max} kg → Gr. {t['h_gr']}")
 
     # Futterstrategie
@@ -229,7 +231,7 @@ def berechne_hilfe():
     return t
 
 # ============================
-# 5. Ausgabe
+# 4. Ausgabe
 # ============================
 if st.button("Hilfe generieren"):
     t = berechne_hilfe()
