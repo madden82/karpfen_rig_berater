@@ -1,140 +1,149 @@
 import streamlit as st
-import datetime
+import pandas as pd
 
-# Setup
-st.set_page_config(page_title="Karpfen-Taktik Pro v3.0", layout="wide")
+# -------------------------------
+# BLEI – mathematische Bewertung
+# -------------------------------
 
-# Custom CSS für bessere Optik
-st.markdown("""
-<style>
-.result-box { background-color: #f8f9fa; border-left: 5px solid #2e7d32; padding: 15px; margin: 10px 0; border-radius: 5px; }
-.reason-text { font-size: 0.9rem; color: #555; font-style: italic; }
-.header-style { color: #1b5e20; font-weight: bold; border-bottom: 2px solid #2e7d32; }
-</style>
-""", unsafe_allow_html=True)
-
-st.title("🎣 Karpfen-Taktik Pro v3.0")
-
-# ============================
-# EINGABESEKTIERUNG
-# ============================
-with st.sidebar:
-    st.header("📍 Spot-Parameter")
-    gewaesser = st.selectbox("Gewässer", ["See", "Fluss/Kanal", "Strom"])
-    tiefe = st.number_input("Tiefe (m)", 0.5, 30.0, 4.0)
-    boden = st.selectbox("Bodenbeschaffenheit", ["Sand/Kies", "Lehm", "Weicher Schlamm", "Faulschlamm/Moder"])
-    hindernisse = st.multiselect("Hindernisse", ["Muscheln", "Totholz", "Kraut", "Krebse"])
-    
-    st.header("🌤️ Umwelt & Biologie")
-    temp = st.slider("Wassertemperatur (°C)", 0, 35, 15)
-    angeldruck = st.select_slider("Angeldruck", ["Gering", "Mittel", "Hoch", "Extrem"])
-    fischgroesse = st.number_input("Zielfisch-Gewicht (kg)", 1, 50, 15)
-    weissfisch = st.select_slider("Weißfisch-Dichte", ["Niedrig", "Mittel", "Hoch"])
-
-# ============================
-# LOGIK-ENGINE (Deep Linking)
-# ============================
-def generiere_taktik():
-    # Initialisierung des Taktik-Objekts
-    taktik = {
-        "haken": {"typ": "Wide Gape", "gr": 6, "grund": ""},
-        "vorfach": {"mat": "Coated Braid", "len": 20, "grund": ""},
-        "blei": {"gewicht": 100, "typ": "Safety Clip", "form": "Birne", "grund": ""},
-        "koeder": {"art": "Boilie", "gr": 20, "grund": ""}
+def bestimme_bleityp(boden, distanz, stroemung, wind, tiefe):
+    scores = {
+        "Birnenblei": 0,
+        "Flat Pear": 0,
+        "Distance / Torpedo": 0,
+        "Gripper": 0
     }
 
-    # --- 1. HAKEN-LOGIK (Verknüpfung: Ködergröße + Angeldruck + Hindernisse) ---
-    # Grundgröße basierend auf Fischgewicht
-    h_gr = 6
-    if fischgroesse > 20: h_gr = 4
-    if fischgroesse < 10: h_gr = 8
-    
-    # Korrektur durch Angeldruck (Vorsichtige Fische = kleinere Haken)
-    if angeldruck in ["Hoch", "Extrem"]:
-        h_gr += 2 
-    
-    # Korrektur durch Hindernisse (Starker Halt nötig = größerer Haken)
-    if any(x in hindernisse for x in ["Totholz", "Muscheln"]):
-        h_gr = max(2, h_gr - 2)
-        taktik["haken"]["typ"] = "Curve Shank (stärkerer Halt)"
-    
-    taktik["haken"]["gr"] = min(10, max(2, h_gr))
-    taktik["haken"]["grund"] = f"Größe {taktik['haken']['gr']} gewählt, da bei {angeldruck}em Angeldruck und {fischgroesse}kg Fischen die Balance zwischen Tarnung und Hakeffekt stimmen muss."
-
-    # --- 2. VORFACH-LOGIK (Verknüpfung: Boden + Hindernisse + Temperatur) ---
-    if boden == "Weicher Schlamm":
-        taktik["vorfach"]["len"] = 30
-        taktik["vorfach"]["mat"] = "Soft Braid"
-        taktik["vorfach"]["grund"] = "Langes, weiches Vorfach, damit der Köder nicht im Schlamm versinkt, wenn das Blei einsinkt."
-    elif boden == "Faulschlamm/Moder":
-        taktik["vorfach"]["len"] = 15
-        taktik["vorfach"]["mat"] = "Chod Rig / Mono"
-        taktik["vorfach"]["grund"] = "Pop-Up Montage (Chod), um den Köder über dem stinkenden Moder zu präsentieren."
-    elif any(x in hindernisse for x in ["Muscheln", "Totholz"]):
-        taktik["vorfach"]["mat"] = "Mantel-Vorfach (steil) oder Fluorocarbon"
-        taktik["vorfach"]["grund"] = "Abriebfestes Material zwingend erforderlich wegen {', '.join(hindernisse)}."
+    # Boden
+    if boden == "weich":
+        scores["Flat Pear"] += 3
+    elif boden == "mittel":
+        scores["Birnenblei"] += 2
     else:
-        taktik["vorfach"]["grund"] = "Standard Coated Braid für saubere Präsentation auf hartem Boden."
+        scores["Distance / Torpedo"] += 2
 
-    # --- 3. BLEI-LOGIK (Verknüpfung: Gewässer + Tiefe + Boden) ---
-    gewicht = 100
-    if gewaesser == "Strom":
-        taktik["blei"]["form"] = "Grippa"
-        gewicht = 180
-    elif tiefe > 10:
-        gewicht += 30
-        taktik["blei"]["grund"] = "Erhöhtes Gewicht für bessere Köderkontrolle und Selbsthakeffekt in großer Tiefe."
-    
-    if boden in ["Weicher Schlamm", "Faulschlamm/Moder"]:
-        taktik["blei"]["typ"] = "Helikopter-System"
-        taktik["blei"]["grund"] += " Helikopter-Montage verhindert, dass das Vorfach mit dem Blei in den Boden gezogen wird."
-    
-    taktik["blei"]["gewicht"] = gewicht
+    # Distanz
+    if distanz >= 100:
+        scores["Distance / Torpedo"] += 3
+    elif distanz >= 60:
+        scores["Birnenblei"] += 2
 
-    # --- 4. KÖDER-LOGIK (Verknüpfung: Temperatur + Weißfisch + Krebse) ---
-    if "Krebse" in hindernisse or weissfisch == "Hoch":
-        taktik["koeder"]["art"] = "Duo-Hartholz oder gesalzene Boilies"
-        taktik["koeder"]["gr"] = 24
-        taktik["koeder"]["grund"] = "Großer, harter Köder notwendig, um Krebsattacken und Weißfisch-Aktivität zu überstehen."
-    elif temp < 10:
-        taktik["koeder"]["art"] = "Auffälliger Pop-Up oder Wafter"
-        taktik["koeder"]["gr"] = 14
-        taktik["koeder"]["grund"] = "Kleinerer, hochattraktiver Köder, da der Stoffwechsel der Fische bei 10°C reduziert ist."
+    # Strömung
+    if stroemung >= 0.7:
+        scores["Gripper"] += 4
+    elif stroemung >= 0.3:
+        scores["Birnenblei"] += 2
+
+    # Wind
+    if wind >= 5:
+        scores["Distance / Torpedo"] += 2
+
+    # Tiefe
+    if tiefe >= 8:
+        scores["Birnenblei"] += 1
+
+    return max(scores, key=scores.get)
+
+
+# -------------------------------
+# UNTERBLEI
+# -------------------------------
+
+def bestimme_unterblei(bleityp, stroemung):
+    if bleityp == "Gripper":
+        return "kein Unterblei"
+    if stroemung >= 0.5:
+        return "Klemmblei"
+    return "Schrotblei"
+
+
+# -------------------------------
+# BLEIGEWICHT (mathematisch)
+# -------------------------------
+
+def bestimme_bleigewicht(distanz, stroemung, tiefe):
+    gewicht = 70
+
+    gewicht += distanz * 0.3
+    gewicht += stroemung * 40
+    gewicht += tiefe * 2
+
+    return round(min(max(gewicht, 70), 200), 0)
+
+
+# -------------------------------
+# VORFACH
+# -------------------------------
+
+def bestimme_vorfach(boden, hindernisse, stroemung):
+    if hindernisse:
+        return "beschichtetes Geflecht (25–35 lb)"
+    if stroemung >= 0.4:
+        return "beschichtetes Geflecht"
+    if boden == "weich":
+        return "weiches Geflecht (20–25 lb)"
+    return "Fluorocarbon / steifes Material"
+
+
+# -------------------------------
+# HAKEN (korrekte Nummernlogik!)
+# -------------------------------
+
+def basis_haken_nach_koeder(koeder_mm):
+    if koeder_mm <= 16:
+        return (8, 6)
+    elif koeder_mm <= 20:
+        return (6, 4)
     else:
-        taktik["koeder"]["grund"] = "Standard-Boilie (20mm) für ausgewogenes Fressverhalten."
+        return (4, 2)
 
-    return taktik
 
-# ============================
-# AUSGABE
-# ============================
-if st.button("TAKTIK-ANALYSE STARTEN"):
-    res = generiere_taktik()
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("🎣 Montage-Details")
-        st.markdown(f"""
-        <div class="result-box">
-            <b>Haken:</b> {res['haken']['typ']} Gr. {res['haken']['gr']}<br>
-            <span class="reason-text">{res['haken']['grund']}</span>
-        </div>
-        <div class="result-box">
-            <b>Vorfach:</b> {res['vorfach']['mat']} ({res['vorfach']['len']} cm)<br>
-            <span class="reason-text">{res['vorfach']['grund']}</span>
-        </div>
-        """, unsafe_allow_html=True)
+def bestimme_hakengroesse(koeder_mm, max_karpfen_kg):
+    haken_gross, haken_klein = basis_haken_nach_koeder(koeder_mm)
 
-    with col2:
-        st.subheader("⚙️ System & Köder")
-        st.markdown(f"""
-        <div class="result-box">
-            <b>Blei:</b> {res['blei']['gewicht']}g {res['blei']['form']} ({res['blei']['typ']})<br>
-            <span class="reason-text">{res['blei']['grund']}</span>
-        </div>
-        <div class="result-box">
-            <b>Köder:</b> {res['koeder']['art']} ({res['koeder']['gr']} mm)<br>
-            <span class="reason-text">{res['koeder']['grund']}</span>
-        </div>
-        """, unsafe_allow_html=True)
+    if max_karpfen_kg >= 20:
+        haken_gross -= 2
+        haken_klein -= 2
+    elif max_karpfen_kg >= 10:
+        haken_gross -= 1
+        haken_klein -= 1
+
+    haken_gross = max(haken_gross, 2)
+    haken_klein = max(haken_klein, 2)
+
+    return f"Größe {haken_gross}–{haken_klein}"
+
+
+# -------------------------------
+# STREAMLIT UI
+# -------------------------------
+
+st.title("🎣 Karpfen Rig Berater")
+
+st.header("Gewässer & Bedingungen")
+
+boden = st.selectbox("Bodenhärte", ["weich", "mittel", "hart"])
+distanz = st.slider("Wurfweite (m)", 20, 150, 70)
+stroemung = st.slider("Strömung (m/s)", 0.0, 1.5, 0.0)
+wind = st.slider("Wind (m/s)", 0, 15, 3)
+tiefe = st.slider("Wassertiefe (m)", 1, 20, 5)
+hindernisse = st.checkbox("Hindernisse vorhanden?")
+
+st.header("Köder & Fisch")
+
+koeder_mm = st.selectbox("Ködergröße (mm)", [12, 16, 18, 20, 24])
+max_karpfen_kg = st.slider("Max. erwartete Karpfengröße (kg)", 5, 35, 15)
+
+if st.button("Rig berechnen"):
+    bleityp = bestimme_bleityp(boden, distanz, stroemung, wind, tiefe)
+    unterblei = bestimme_unterblei(bleityp, stroemung)
+    bleigewicht = bestimme_bleigewicht(distanz, stroemung, tiefe)
+    vorfach = bestimme_vorfach(boden, hindernisse, stroemung)
+    haken = bestimme_hakengroesse(koeder_mm, max_karpfen_kg)
+
+    st.subheader("✅ Empfehlung")
+
+    st.write(f"**Bleityp:** {bleityp}")
+    st.write(f"**Unterblei:** {unterblei}")
+    st.write(f"**Bleigewicht:** ca. {bleigewicht} g")
+    st.write(f"**Vorfach:** {vorfach}")
+    st.write(f"**Hakengröße:** {haken}")
