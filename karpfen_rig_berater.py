@@ -1,116 +1,117 @@
 import streamlit as st
 
-# Konfiguration
-st.set_page_config(page_title="Karpfen-Rig Kalkulator", layout="centered")
-
-st.title("🎣 Karpfen-Rig Kalkulator")
-st.markdown("Beantworte die Fragen, um dein optimales Setup zu berechnen.")
-
 # ==========================================
-# SCHRITT 1 - 9: DIE EINGABEMASKE (DEIN ORIGINAL-STIL)
+# KONFIGURATION
 # ==========================================
+st.set_page_config(page_title="Karpfen-Rig Kalkulator PRO", layout="wide")
 
-with st.expander("1️⃣ Gewässer und Strömung", expanded=True):
-    gewässertyp = st.radio("Gewässertyp:", 
-        ("Keine Strömung (Seen, Teiche, Weiher, Baggerseen, Lagunen)", 
-         "Strömung vorhanden (Flüsse, Kanäle, Stauseen, Altarme, Mündungsbereiche)"))
-    
-    if "Keine Strömung" in gewässertyp:
-        strom = "keine"
-        strom_m_s = 0.0
-    else:
-        strom_stufe = st.select_slider("Strömungsgeschwindigkeit:", options=["leicht", "mittel", "stark"])
-        strom = strom_stufe
-        strom_m_s = {"leicht": 0.2, "mittel": 0.6, "stark": 1.4}[strom]
-
-with st.expander("2️⃣ Angeltechnik & Wurfweite"):
-    angeltechnik = st.radio("Angeltechnik:", ("Wurf vom Ufer aus", "Boot: Wurf von Boot aus", "Boot: Ablage von Boot aus", "Futterboot"))
-    wurfweite = st.slider("Wurfweite (m):", 0, 200, 50) if "Wurf" in angeltechnik else 0
-
-with st.expander("3️⃣ Bodenbeschaffenheit"):
-    boden = st.radio("Bodenart:", ("weich", "mittel", "hart"))
-    st.info("Hart: Kies/Lehm | Mittel: Sand/dünner Schlamm | Weich: tiefer Schlamm")
-
-with st.expander("4️⃣ Maximal erwartetes Karpfengewicht"):
-    gewicht = st.slider("Gewicht (kg):", 1, 40, 10)
-
-with st.expander("5️⃣ Verhalten der Karpfen"):
-    fischverhalten = st.radio("Karpfenverhalten:", ("Aktive Fresser", "Scheue Karpfen", "Beide Typen / weiß nicht genau"))
-
-with st.expander("6️⃣ Hindernisse am Spot"):
-    hindernisse_vorhanden = st.radio("Sind Hindernisse vorhanden?", ("Ja", "Nein", "Weiß ich nicht"))
-    hindernisse_bool = True if hindernisse_vorhanden == "Ja" else False
-
-with st.expander("7️⃣ Wasserqualität"):
-    wasserqualitaet = st.radio("Wasserqualität:", ("klar", "leicht trüb", "trüb"))
-
-with st.expander("8️⃣ Störtiere"):
-    störtiere = st.multiselect("Welche Störtiere sind vorhanden?", ["Viele Weißfische", "Krebse", "Keine oder wenige"])
-
-with st.expander("9️⃣ Jahreszeit und Wassertemperatur"):
-    season = st.selectbox("Jahreszeit:", ["Frühling", "Sommer", "Herbst", "Winter"])
-    temperature = st.slider("Wassertemperatur (°C):", 0, 35, 15)
-
-# ==========================================
-# BERECHNUNG DER DATEN
-# ==========================================
-
-# 1. Bleigewicht
-basis_blei = {1: 12, 5: 35, 10: 50, 15: 60, 20: 70, 30: 90, 40: 110}
-basis = min([v for k, v in basis_blei.items() if gewicht <= k] or [110])
-boden_f = {"weich": 0.9, "mittel": 1.0, "hart": 1.1}[boden]
-strom_f = {"keine": 1.0, "leicht": 1.05, "mittel": 1.10, "stark": 1.20}[strom]
-gewicht_effektiv = round(basis * boden_f * strom_f, 1)
-
-# 2. Rigs
-rigs = {
-    "Line-Aligner": {"boden": ["hart", "mittel"], "max_wurf": 120, "strom_max": 0.85, "grund": "Perfekt auf Kies. Haken kippt sofort."},
-    "Snowman": {"boden": ["hart", "mittel", "weich"], "max_wurf": 100, "strom_max": 1.22, "grund": "Leicht auftreibend. Gut bei Schlamm."},
-    "Helikopter": {"boden": ["weich", "mittel", "hart"], "max_wurf": 200, "strom_max": 2.0, "grund": "Bestes Rig für alle Böden und weite Würfe."}
-}
-empfohlene_rigs = [name for name, info in rigs.items() if boden in info["boden"] and wurfweite <= info["max_wurf"] and strom_m_s <= info["strom_max"]]
-
-# ==========================================
-# AUSWERTUNG & FINALE SPOTWAHL
-# ==========================================
+st.title("🎣 Karpfen-Rig Kalkulator & Taktik-Master")
 st.markdown("---")
-if st.button("JETZT AUSWERTUNG GENERIEREN"):
-    
-    st.header("📊 Dein optimiertes Setup")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        st.metric("Bleigewicht", f"{gewicht_effektiv} g")
-        st.write(f"**Vorfach:** {'ca. 25-40' if boden == 'weich' else 'ca. 15-20'} cm")
-    with c2:
-        st.write(f"**Empfohlene Rigs:** {', '.join(empfohlene_rigs[:2])}")
-        st.write(f"**Technik:** {angeltechnik}")
 
-    st.header("🎯 Strategische Spot-Info")
-    
-    # Intelligente Spot-Analyse basierend auf ALLEN Daten
-    analyse_text = []
-    
-    # Temperatur & Tiefe
-    if temperature < 10:
-        analyse_text.append(f"Da es **{season}** ist ({temperature}°C), stehen die Fische tief. Suche nach Mulden. Dein {gewicht_effektiv}g Blei muss präzise liegen, da die Fische wenig ziehen.")
-    elif temperature > 20:
-        analyse_text.append(f"Bei {temperature}°C im **{season}** ist Sauerstoff alles. Suche Schatten oder Wind-Ufer.")
+# ==========================================
+# 1️⃣ EINGABEN
+# ==========================================
+st.sidebar.header("📍 Deine Spot-Daten")
 
-    # Boden & Störtiere
+gewässertyp = st.sidebar.radio(
+    "Gewässertyp:",
+    ("Keine Strömung (Seen, Teiche, Weiher, Baggerseen)",
+     "Strömung vorhanden (Flüsse, Kanäle, Stauseen)")
+)
+
+if gewässertyp.startswith("Keine Strömung"):
+    strom = "keine"
+    strom_m_s = 0.0
+else:
+    strom = st.sidebar.select_slider("Strömungsgeschwindigkeit:", options=["leicht", "mittel", "stark"])
+    strom_m_s = {"leicht": 0.2, "mittel": 0.6, "stark": 1.4}[strom]
+
+angeltechnik = st.sidebar.radio("Angeltechnik:", ("Wurf vom Ufer aus", "Boot / Futterboot"))
+wurfweite = st.sidebar.slider("Wurfweite (m):", 0, 200, 50) if "Wurf" in angeltechnik else 0
+boden = st.sidebar.selectbox("Bodenart:", ("weich", "mittel", "hart"))
+gewicht = st.sidebar.slider("Max. erwartetes Karpfengewicht (kg):", 1, 40, 12)
+fischverhalten = st.sidebar.selectbox("Karpfenverhalten:", ("Aktive Fresser", "Scheue Karpfen", "Beide Typen"))
+wasserqualitaet = st.sidebar.selectbox("Wasserqualität:", ("klar", "leicht trüb", "trüb"))
+season = st.sidebar.selectbox("Jahreszeit:", ["Frühling", "Sommer", "Herbst", "Winter"])
+temperature = st.sidebar.slider("Wassertemperatur (°C):", 0, 30, 15)
+störtiere = st.sidebar.multiselect("Störtiere:", ["Viele Weißfische", "Krebse", "Wollhandkrabben"])
+hindernisse = st.sidebar.radio("Hindernisse am Spot?", ("Ja", "Nein"))
+
+# ==========================================
+# 2️⃣ BERECHNUNGEN (DEINE LOGIK)
+# ==========================================
+basis_blei_map = {1: 12, 3: 25, 5: 35, 10: 50, 15: 60, 20: 70, 25: 80, 30: 90, 35: 100, 40: 110}
+basis = min([v for k, v in basis_blei_map.items() if gewicht <= k] or [110])
+gewicht_effektiv = round(basis * {"weich": 0.9, "mittel": 1.0, "hart": 1.1}[boden] * {"keine": 1.0, "leicht": 1.05, "mittel": 1.10, "stark": 1.20}[strom], 1)
+
+vorfach_tabelle = {"hart": (10, 20), "mittel": (15, 30), "weich": (25, 50)}
+min_v, max_v = vorfach_tabelle[boden]
+vorfach_l = max_v if fischverhalten != "Aktive Fresser" else (min_v + max_v) // 2
+
+# Rig-Auswahl
+rigs = {
+    "Line-Aligner": {"boden": ["hart", "mittel"], "w": 120, "s": 0.85, "text": "Haken kippt extrem schnell. Ideal für Bodenköder auf festem Grund."},
+    "Snowman": {"boden": ["hart", "mittel", "weich"], "w": 100, "s": 1.22, "text": "Kombination aus sinkendem & schwimmendem Boilie. Perfekte Balance."},
+    "D-Rig": {"boden": ["hart"], "w": 150, "s": 0.6, "text": "Maximale Köderbeweglichkeit. Sehr unauffällig für misstrauische Großkarpfen."},
+    "KD-Rig": {"boden": ["hart", "mittel", "weich"], "w": 120, "s": 1.05, "text": "Durch das tief austretende Haar steht der Haken extrem aggressiv."},
+    "Helikopter-Rig": {"boden": ["weich", "mittel", "hart"], "w": 200, "s": 2.0, "text": "Das Vorfach gleitet auf der Schnur hoch. Köder sinkt niemals im Schlamm ein."}
+}
+passende = [r for r, i in rigs.items() if boden in i["boden"] and wurfweite <= i["w"] and strom_m_s <= i["s"]]
+
+# ==========================================
+# 3️⃣ AUSGABE & ERWEITERTE TAKTIK
+# ==========================================
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    st.header("🏁 Das Setup")
+    st.metric("Berechnetes Blei", f"{gewicht_effektiv} g")
+    st.info(f"**Vorfachlänge:** {vorfach_l} cm")
+    st.write("👉 *So kurz wie möglich, so lang wie nötig!*")
+    
+    st.subheader("Empfohlene Rigs")
+    for p in passende[:2]:
+        st.success(f"**{p}**")
+        st.caption(rigs[p]["text"])
+
+with col2:
+    st.header("🎯 Taktische Master-Strategie")
+    
+    # --- BODEN & PRÄSENTATION ---
+    st.subheader("🏗️ Boden & Präsentation")
     if boden == "weich":
-        analyse_text.append("Achtung: Auf weichem Boden sinkt das Blei ein. Nutze längere Vorfächer, damit der Köder oben auf dem Schlamm liegt.")
-    if "Krebse" in störtiere:
-        analyse_text.append("⚠️ Krebse aktiv! Nutze 'Hard Baits' oder schütze deine Boilies mit Schrumpfschlauch.")
+        st.write("- **Taktik:** Im Schlamm sammeln sich Zuckmückenlarven. Die Fische wühlen tief. Nutze ein langes Haar oder Pop-Ups (1-2cm über Grund), damit der Köder nicht im Faulschlamm verschwindet.")
+        st.write("- **Futter:** Nutze leichte Partikel (Hanf) und Pellets, die langsam einsinken.")
+    elif boden == "hart":
+        st.write("- **Taktik:** Die Fische fressen hier oft hart am Grund. Kurze Vorfächer sind hier tödlich, da der Haken sofort greift, sobald der Fisch den Kopf hebt.")
+    
+    # --- STRÖMUNG & LOCKWIRKUNG ---
+    st.subheader("🌊 Strömung & Futter")
+    if strom == "keine":
+        st.write("- **Strategie:** Ohne Strömung ist die Lockwirkung geringer. Nutze 'Liquids' oder 'PVA-Sticks', um eine punktuelle Duftwolke direkt am Hakenköder zu erzeugen.")
+    else:
+        st.write(f"- **Strategie:** Bei {strom}er Strömung wird Futter abgetrieben. Lege deine Futterspur stromaufwärts vom Hakenköder an. Schwere Boilies (24mm+) oder Clay-Bälle nutzen.")
 
-    # Strömung & Hindernisse
-    if strom != "keine":
-        analyse_text.append(f"Bei {strom}er Strömung solltest du den Spot im Strömungsschatten (hinter Kanten) suchen, damit dein Futter liegen bleibt.")
-    if hindernisse_bool:
-        analyse_text.append("Da Hindernisse vorhanden sind: Nutze ein Safety-Clip System, damit der Fisch das Blei im Drill verlieren kann.")
+    # --- JAHRESZEIT & THERMIK ---
+    st.subheader("🌡️ Temperatur & Fischzug")
+    if temperature < 10:
+        st.write(f"- **Spotwahl:** Winter/Frühjahr ({temperature}°C). Karpfen sind wechselwarm. Suche die 'Thermocline' (Sprungschicht). Oft stehen sie im Winter im tieferen Freiwasser oder in geschützten Mulden.")
+        st.write("- **Köder:** Hochattraktive, kleine Köder (12-14mm). Wenig Öl (da Öl im kalten Wasser zähflüssig wird).")
+    elif temperature > 20:
+        st.write(f"- **Spotwahl:** Sommerhitze! Sauerstoff ist der Schlüssel. Suche Einläufe, Sprudelsteine oder die windzugewandte Seite (Auflandiger Wind).")
 
-    # Finale Zusammenfassung
-    for t in analyse_text:
-        st.info(t)
+    # --- STÖRTIERE & GEFAHREN ---
+    if störtiere:
+        st.subheader("🦀 Störtiere & Sicherheit")
+        if "Krebse" in störtiere or "Wollhandkrabben" in störtiere:
+            st.warning("- **Krebs-Alarm:** Nutze 'Armabraid' (Schrumpfschlauch) für deine Boilies oder Tigernüsse. Vermeide fischige Aromen, nutze eher süße/fruchtige Köder, die Krebse weniger anlocken.")
+        if "Viele Weißfische" in störtiere:
+            st.write("- **Weißfische:** Erhöhe den Köderdurchmesser auf 24mm oder 30mm, um Brassen und Rotaugen zu selektieren.")
 
-    st.success("Tipp: Füttere punktgenau, da die Fische bei deinem Setup eine saubere Präsentation brauchen!")
+    # --- HINDERNISSE ---
+    if hindernisse == "Ja":
+        st.subheader("🪵 Hindernis-Management")
+        st.write("- **Sicherheit:** 'Safety First'. Nutze unbedingt ein Safety-Clip System, damit das Blei im Falle eines Abrisses sofort abfällt. Verwende eine Schlagschnur (min. 0.50mm Mono) auf den letzten 10-15 Metern.")
+
+st.markdown("---")
+st.success("Tipp: Beobachte das Wasser! Ein einzelnes Rollen oder Springen eines Karpfens sagt mehr aus als jede Theorie. Petri Heil!")
