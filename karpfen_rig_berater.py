@@ -99,7 +99,8 @@ if boden == "weich":
     st.write(f"- **Detaillierte Analyse:** Da du auf **weichem Boden** angelst, besteht die Gefahr, dass dein {gewicht_effektiv}g Blei im Schlamm versinkt und das Vorfach mitzieht. Nutze zwingend ein Helikopter-System, bei dem du den oberen Stopper weit nach oben schiebst (ca. 2x Schlammtiefe).")
     st.write("- **Köder-Taktik:** Vermeide schwere Sink-Boilies. Nutze 'Wafter' oder Pop-Ups, die das Gewicht des Hakens aufheben. Im weichen Schlamm fressen Karpfen oft durch 'Filtern'. Kleine Partikel wie Hanf und Weizen halten die Fische länger am Platz, ohne sie zu sättigen.")
 elif boden == "hart":
-    st.write("- **Detaillierte Analyse:** Auf **hartem Grund** (Kies/Lehm) nehmen Fische den Köder oft sehr aggressiv auf. Kurze Vorfächer ({vorfach_l}cm) sorgen hier für einen sofortigen Hakeffekt durch das Bleigewicht.")
+    # FEHLER KORRIGIERT: Variable wird nun korrekt mit f-String eingebunden
+    st.write(f"- **Detaillierte Analyse:** Auf **hartem Grund** (Kies/Lehm) nehmen Fische den Köder oft sehr aggressiv auf. Kurze Vorfächer ({vorfach_l} cm) sorgen hier für einen sofortigen Hakeffekt durch das Bleigewicht.")
     st.write("- **Spot-Tipp:** Suche nach harten Kanten oder Plateaus. Hier ziehen die Fische entlang. Nutze schwere Inline-Bleie für den besten Selbsthakeffekt, da der Widerstand sofort übertragen wird.")
 else:
     st.write("- **Detaillierte Analyse:** **Mittlerer Boden** (Sand/dünner Schlamm) erlaubt fast alle Rig-Typen. Achte darauf, ob das Blei beim Einholen Widerstand zeigt oder leicht rutscht.")
